@@ -1,0 +1,80 @@
+﻿@page "/fund/list"
+@inject HttpClient Http
+
+<h1>Fund List</h1>
+
+@if (funds == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p><a href="/fund">Create new fund</a></p>
+    if (funds.Length > 0)
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Comment</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var fund in funds)
+                {
+                    <tr>
+                        <td><a href="/fund/@fund.id">@fund.name &nbsp;<span class="oi oi-pencil"></span></a></td>
+                        <td>@fund.comment</td>
+                        <td><button @onclick="@(() => DeleteFund(fund.id))" class="btn-delete"><span class="oi oi-trash"></span></button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+
+@code {
+    private BlazTest.Shared.Models.Fund[] funds;
+
+    protected async void Refresh()
+    {
+        // Show loading spinner while data is being fetched
+        funds = null;
+        StateHasChanged();
+
+        funds = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Fund[]>("https://pennypincher.x10.bz/pennydev/fund/list.php");
+        funds ??= new BlazTest.Shared.Models.Fund[0];
+
+        // Update UI after data is fetched
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Refresh();
+    }
+
+    private async Task DeleteFund(string id)
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"https://pennypincher.x10.bz/pennydev/fund/delete.php?id={id}");
+            if (response.IsSuccessStatusCode)
+            {
+                // Refresh the fund list after successful deletion
+                Refresh();
+            }
+            else
+            {
+                Console.WriteLine($"Error deleting fund with id {id}: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

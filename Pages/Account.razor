@@ -1,0 +1,114 @@
+﻿@*NEW*@
+@page "/account"
+@*EDIT*@
+@page "/account/{account_id}"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(account_id?.Length > 0 ? "Edit" : "New") Account</PageTitle>
+
+<h1 id="title">
+    @(account_id?.Length > 0 ? "Edit" : "New") Account
+</h1>
+
+<EditForm OnValidSubmit="OnHandleValidFormSubmit" EditContext="@editContext">
+    <label for="inputName">Name:</label>
+    <InputText id="inputName" @bind-Value="@account.name"></InputText>
+    <ValidationMessage For="@(() => account.name)" />
+    <label for="inputName">Comments:</label>
+    <InputTextArea @bind-Value="@account.comment"></InputTextArea>
+    <div style="border: 1px black solid">
+        <p>Utilizer Nomen: @account.user_id</p>
+        <p>Ego: @account.id</p>
+    </div>
+    <ValidationSummary />
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public string? account_id { get; set; }
+
+    private BlazTest.Shared.Models.Account account=new();
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        editContext = new EditContext(account);
+        account_id ??= "";
+        account.id = account_id;
+
+        if (account_id == "")
+        {
+            account_id = Guid.NewGuid().ToString();
+        }
+        else
+        {
+            var url = "https://pennypincher.x10.bz/pennydev/account/get.php?id=" + System.Web.HttpUtility.UrlEncode(account_id);
+            var account_tmp = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Account>(url);
+
+            if (account_tmp == null)
+            {
+                //account not found
+                NavigationManager.NavigateTo("/", true);
+                return;
+            }
+            account = account_tmp;
+        }
+        account.id = account_id;
+
+        #if DEBUG
+        account.user_id = "5aa5d5e5-5f3c-44a5-84d5-6c9e6f9711db";
+        #endif
+
+        
+        editContext.OnValidationRequested += HandleValidationRequested;
+        messageStore = new ValidationMessageStore(editContext);
+    }
+
+    private void HandleValidationRequested(object? sender,
+      ValidationRequestedEventArgs args)
+    {
+        messageStore?.Clear();
+
+        account.name ??= "";
+        account.comment ??= "";
+
+        if (account.name.Trim() == "")
+        {
+            messageStore?.Add(() => account.name, "Account name is required.");
+        }
+
+    }
+
+    private async Task OnHandleValidFormSubmit()
+    {
+
+        var formContent = new FormUrlEncodedContent(new[]
+        {
+        new KeyValuePair<string, string>("id", account.id),
+        new KeyValuePair<string, string>("name", account.name),
+        new KeyValuePair<string, string>("comment", account.comment),
+        new KeyValuePair<string, string>("user_id", account.user_id)
+    });
+
+        var url = "https://pennypincher.x10.bz/pennydev/account/put.php";
+        var response = await Http.PostAsync(url, formContent);
+        var result = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("STATUS:" + response.StatusCode);
+            Console.WriteLine("RESULT:" + result);
+            NavigationManager.NavigateTo("/account/list", true);
+        }
+        else
+        {
+            // Display error message
+            var errorResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(errorResponse);
+        }
+    }
+
+}

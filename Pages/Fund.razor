@@ -1,0 +1,114 @@
+﻿@*NEW*@
+@page "/fund"
+@*EDIT*@
+@page "/fund/{fund_id}"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(fund_id?.Length > 0 ? "Edit" : "New") Fund</PageTitle>
+
+<h1 id="title">
+    @(fund_id?.Length > 0 ? "Edit" : "New") Fund
+</h1>
+
+<EditForm OnValidSubmit="OnHandleValidFormSubmit" EditContext="@editContext">
+    <label for="inputName">Name:</label>
+    <InputText id="inputName" @bind-Value="@fund.name"></InputText>
+    <ValidationMessage For="@(() => fund.name)" />
+    <label for="inputName">Comments:</label>
+    <InputTextArea @bind-Value="@fund.comment"></InputTextArea>
+    <div style="border: 1px black solid">
+        <p>Utilizer Nomen: @fund.user_id</p>
+        <p>Ego: @fund.id</p>
+    </div>
+    <ValidationSummary />
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public string? fund_id { get; set; }
+
+    private BlazTest.Shared.Models.Fund fund = new();
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        editContext = new EditContext(fund);
+        fund_id ??= "";
+        fund.id = fund_id;
+
+        if (fund_id == "")
+        {
+            fund_id = Guid.NewGuid().ToString();
+        }
+        else
+        {
+            var url = "https://pennypincher.x10.bz/pennydev/fund/get.php?id=" + System.Web.HttpUtility.UrlEncode(fund_id);
+            var fund_tmp = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Fund>(url);
+
+            if (fund_tmp == null)
+            {
+                //fund not found
+                NavigationManager.NavigateTo("/", true);
+                return;
+            }
+            fund = fund_tmp;
+        }
+        fund.id = fund_id;
+
+        #if DEBUG
+        fund.user_id = "5aa5d5e5-5f3c-44a5-84d5-6c9e6f9711db";
+        #endif
+
+        
+        editContext.OnValidationRequested += HandleValidationRequested;
+        messageStore = new ValidationMessageStore(editContext);
+    }
+
+    private void HandleValidationRequested(object? sender,
+      ValidationRequestedEventArgs args)
+    {
+        messageStore?.Clear();
+
+        fund.name ??= "";
+        fund.comment ??= "";
+
+        if (fund.name.Trim() == "")
+        {
+            messageStore?.Add(() => fund.name, "Fund name is required.");
+        }
+
+    }
+
+    private async Task OnHandleValidFormSubmit()
+    {
+
+        var formContent = new FormUrlEncodedContent(new[]
+        {
+        new KeyValuePair<string, string>("id", fund.id),
+        new KeyValuePair<string, string>("name", fund.name),
+        new KeyValuePair<string, string>("comment", fund.comment),
+        new KeyValuePair<string, string>("user_id", fund.user_id)
+    });
+
+        var url = "https://pennypincher.x10.bz/pennydev/fund/put.php";
+        var response = await Http.PostAsync(url, formContent);
+        var result = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("STATUS:" + response.StatusCode);
+            Console.WriteLine("RESULT:" + result);
+            NavigationManager.NavigateTo("/fund/list", true);
+        }
+        else
+        {
+            // Display error message
+            var errorResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(errorResponse);
+        }
+    }
+
+}

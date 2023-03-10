@@ -1,0 +1,64 @@
+﻿@page "/account/list"
+@inject HttpClient Http
+
+<h1>Account List</h1>
+
+@if (accounts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p><a href="/account">Create new account</a></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Comment</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in accounts)
+            {
+                <tr>
+                    <td><a href="/account/@account.id">@account.name &nbsp;<span class="oi oi-pencil"></span></a></td>
+                    <td>@account.comment</td>
+                    <td><button @onclick="@(() => DeleteAccount(account.id))" class="btn-delete"><span class="oi oi-trash"></span></button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private BlazTest.Shared.Models.Account[] accounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        accounts = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Account[]>("https://pennypincher.x10.bz/pennydev/account/list.php");
+    }
+
+    private async Task DeleteAccount(string id)
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"https://pennypincher.x10.bz/pennydev/account/delete.php?id={id}");
+            if (response.IsSuccessStatusCode)
+            {
+                // Refresh the account list after successful deletion
+                accounts = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Account[]>("https://pennypincher.x10.bz/pennydev/account/list.php");
+            }
+            else
+            {
+                Console.WriteLine($"Error deleting account with user ID {id}: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+   
+}

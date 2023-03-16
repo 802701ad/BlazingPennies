@@ -1,5 +1,142 @@
-﻿<h3>Transaction</h3>
+﻿@page "/transactions/edit/{transaction_id?}"
+@page "/accounts/{account_id}/transaction/new"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(transaction_id?.Length > 0 ? "Edit" : "New") Transaction</PageTitle>
+
+<h1 id="title">
+    @(transaction_id?.Length > 0 ? "Edit" : "New") Transaction
+</h1>
+
+<EditForm OnValidSubmit="OnHandleValidFormSubmit" EditContext="@editContext">
+    <label for="inputDescription">Description:</label>
+    <InputText id="inputDescription" @bind-Value="@transaction.comment"></InputText>
+    <ValidationMessage For="@(() => transaction.comment)" />
+    <label for="inputAmount">Amount:</label>
+    <InputNumber id="inputAmount" @bind-Value="@transaction.amount"></InputNumber>
+    <ValidationMessage For="@(() => transaction.amount)" />
+    <label for="inputDate">Date:</label>
+    <InputDate id="inputDate" @bind-Value="@transaction.date"></InputDate>
+    <ValidationMessage For="@(() => transaction.date)" />
+    <div style="border: 1px black solid">
+        <p>Fund ID: @fund_id</p>
+        <p>Transaction ID: @transaction.id</p>
+    </div>
+    <h2>Transaction Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var detail in transaction.details)
+            {
+                <tr>
+                    <td><InputText @bind-Value="@detail.description"></InputText></td>
+                    <td><InputNumber @bind-Value="@detail.value"></InputNumber></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <ValidationSummary />
+    <button type="submit">Submit</button>
+</EditForm>
 
 @code {
+    [Parameter]
+    public string? fund_id { get; set; }
 
+    [Parameter]
+    public string? transaction_id { get; set; }
+
+    private BlazTest.Shared.Models.Transaction transaction = new();
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        editContext = new EditContext(transaction);
+        transaction_id ??= "";
+        transaction.id = transaction_id;
+
+        if (transaction_id == "")
+        {
+            transaction_id = Guid.NewGuid().ToString();
+            // Get active accounts for the current fund
+            var accountsUrl = $"https://pennypincher.x10.bz/pennydev/account/list.php?user_id={user_id}&status=active";
+            var accounts = await Http.GetFromJsonAsync<List<BlazTest.Shared.Models.Account>>(accountsUrl);
+
+            // Prepopulate transaction details with empty entries for every active account
+            foreach (var account in accounts)
+            {
+                transaction.details.Add(new BlazTest.Shared.Models.TransactionDetail
+                    {
+                        account_id = account.id,
+                        transaction_id = transaction_id,
+                        value = 0,
+                        description = ""
+                    });
+            }
+        }
+        else
+        {
+            var url = "https://pennypincher.x10.bz/pennydev/transaction/get.php?id=" + System.Web.HttpUtility.UrlEncode(transaction_id);
+            var transaction_tmp = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Transaction>(url);
+
+            if (transaction_tmp == null)
+            {
+                //transaction not found
+                NavigationManager.NavigateTo($"/fund/{fund_id}", true);
+                return;
+            }
+            transaction = transaction_tmp;
+        }
+        transaction.id = transaction_id;
+
+
+
+        editContext.OnValidationRequested += HandleValidationRequested;
+        messageStore = new ValidationMessageStore(editContext);
+    }
+
+    private void HandleValidationRequested(object? sender,
+      ValidationRequestedEventArgs args)
+    {
+        messageStore?.Clear();
+
+
+    }
+
+    private async Task OnHandleValidFormSubmit()
+    {
+        var transactionDetailsJson = System.Text.Json.JsonSerializer.Serialize(transaction.details);
+
+        var transactionFormContent = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("id", transaction.id),
+            new KeyValuePair<string, string>("date",  transaction.date.ToString()),
+            new KeyValuePair<string, string>("amount", transaction.amount.ToString()),
+            new KeyValuePair<string, string>("description", transaction.comment),
+            new KeyValuePair<string, string>("DETAILS", transactionDetailsJson),
+    });
+
+        var transactionUrl = "https://pennypincher.x10.bz/pennydev/transaction/put.php";
+        var transactionResponse = await Http.PostAsync(transactionUrl, transactionFormContent);
+        var transactionResult = await transactionResponse.Content.ReadAsStringAsync();
+
+        if (!transactionResponse.IsSuccessStatusCode)
+        {
+            // Display error message
+            var errorResponse = await transactionResponse.Content.ReadAsStringAsync();
+            Console.WriteLine(errorResponse);
+        }
+        else 
+            NavigationManager.NavigateTo("/fund/list", true);
+    }
+
+    
+  
 }

@@ -38,7 +38,7 @@ else
 @code {
     private BlazTest.Shared.Models.Fund[] funds;
 
-    protected async void Refresh()
+    protected async Task Refresh()
     {
         // Show loading spinner while data is being fetched
         funds = null;
@@ -54,7 +54,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        Refresh();
+        await Refresh();
     }
 
     private async Task DeleteFund(string id)

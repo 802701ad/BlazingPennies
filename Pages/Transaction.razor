@@ -1,5 +1,6 @@
 ﻿@page "/transactions/edit/{transaction_id?}"
 @page "/accounts/{account_id}/transaction/new"
+@attribute [Authorize]
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 
@@ -46,11 +47,11 @@
 </EditForm>
 
 @code {
-    [Parameter]
-    public string? fund_id { get; set; }
+        [Parameter]
+        public string? fund_id { get; set; }
 
-    [Parameter]
-    public string? transaction_id { get; set; }
+        [Parameter]
+        public string? transaction_id { get; set; }
 
     private BlazTest.Shared.Models.Transaction transaction = new();
     private EditContext? editContext;
@@ -66,7 +67,7 @@
         {
             transaction_id = Guid.NewGuid().ToString();
             // Get active accounts for the current fund
-            var accountsUrl = $"https://pennypincher.x10.bz/pennydev/account/list.php?user_id={user_id}&status=active";
+            var accountsUrl = $"https://pennypincher.x10.bz/pennydev/account/list.php?";// user_id={user_id}&status=active";
             var accounts = await Http.GetFromJsonAsync<List<BlazTest.Shared.Models.Account>>(accountsUrl);
 
             // Prepopulate transaction details with empty entries for every active account

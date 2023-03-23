@@ -2,6 +2,7 @@
 @page "/account"
 @*EDIT*@
 @page "/account/{account_id}"
+@attribute [Authorize]
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 
@@ -58,9 +59,7 @@
         }
         account.id = account_id;
 
-        #if DEBUG
-        account.user_id = "5aa5d5e5-5f3c-44a5-84d5-6c9e6f9711db";
-        #endif
+      
 
         
         editContext.OnValidationRequested += HandleValidationRequested;

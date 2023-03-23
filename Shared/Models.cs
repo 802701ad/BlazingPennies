@@ -70,5 +70,14 @@ namespace BlazTest.Shared.Models
         public decimal value { get; set; }
     }
 
+    public class User
+    {
+        public string USER_ID { get; set; }
+        public string PASS { get; set; }
+        public string user { get; set; }
+        public string EMAIL { get; set; }
+        public string FIRST_NAME { get; set; }
+        public string LAST_NAME { get; set; }
+    }
 }
 //{ "user_id": "1", "id": "1", "name": "A", "comment": "comment" }

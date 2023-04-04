@@ -1,6 +1,7 @@
 ﻿@page "/account/list"
 @attribute [Authorize]
 @inject HttpClient Http
+@inject IAuthService auth
 
 <h1>Account List</h1>
 
@@ -36,9 +37,23 @@ else
 @code {
     private BlazingPennies.Shared.Models.Account[] accounts;
 
+    protected async Task Refresh()
+    {
+
+        // Show loading spinner while data is being fetched
+        accounts = null;
+        StateHasChanged();
+
+        string user_id = await auth.CurrentUserId();
+        accounts = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Account[]>($"https://pennypincher.x10.bz/pennydev/account/list.php?user_id={user_id}");
+
+        // Update UI after data is fetched
+        await InvokeAsync(StateHasChanged);
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        accounts = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Account[]>("https://pennypincher.x10.bz/pennydev/account/list.php");
+        Refresh();
     }
 
     private async Task DeleteAccount(string id)
@@ -48,8 +63,7 @@ else
             var response = await Http.DeleteAsync($"https://pennypincher.x10.bz/pennydev/account/delete.php?id={id}");
             if (response.IsSuccessStatusCode)
             {
-                // Refresh the account list after successful deletion
-                accounts = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Account[]>("https://pennypincher.x10.bz/pennydev/account/list.php");
+                Refresh();
             }
             else
             {

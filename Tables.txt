@@ -36,6 +36,7 @@ CREATE TABLE `PENNY_FUND` (
   `user_id` varchar(256) DEFAULT NULL,
   `id` varchar(256) NOT NULL,
   `name` text DEFAULT NULL,
+  `is_active` int(1) NOT NULL,
   `comment` longtext DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 

@@ -5,6 +5,7 @@
 @attribute [Authorize]
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IAuthService auth
 
 <PageTitle>@(account_id?.Length > 0 ? "Edit" : "New") Account</PageTitle>
 
@@ -39,6 +40,7 @@
         editContext = new EditContext(account);
         account_id ??= "";
         account.id = account_id;
+        account.user_id = await auth.CurrentUserId();
 
         if (account_id == "")
         {
@@ -58,10 +60,7 @@
             account = account_tmp;
         }
         account.id = account_id;
-
-      
-
-        
+       
         editContext.OnValidationRequested += HandleValidationRequested;
         messageStore = new ValidationMessageStore(editContext);
     }

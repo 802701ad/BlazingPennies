@@ -1,15 +1,16 @@
-﻿@page "/transactions/edit/{transaction_id?}"
+﻿@page "/transactions/edit/{transaction_id}"
 @page "/accounts/{account_id}/transaction/new"
 @attribute [Authorize]
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IAuthService auth
 
 <PageTitle>@(transaction_id?.Length > 0 ? "Edit" : "New") Transaction</PageTitle>
 
 <h1 id="title">
     @(transaction_id?.Length > 0 ? "Edit" : "New") Transaction
 </h1>
-
+<h2>Total: @Total.ToString("C")</h2>
 <EditForm OnValidSubmit="OnHandleValidFormSubmit" EditContext="@editContext">
     <label for="inputDescription">Description:</label>
     <InputText id="inputDescription" @bind-Value="@transaction.comment"></InputText>
@@ -20,10 +21,6 @@
     <label for="inputDate">Date:</label>
     <InputDate id="inputDate" @bind-Value="@transaction.date"></InputDate>
     <ValidationMessage For="@(() => transaction.date)" />
-    <div style="border: 1px black solid">
-        <p>Fund ID: @fund_id</p>
-        <p>Transaction ID: @transaction.id</p>
-    </div>
     <h2>Transaction Details</h2>
     <table>
         <thead>
@@ -47,35 +44,35 @@
 </EditForm>
 
 @code {
-        [Parameter]
-        public string? fund_id { get; set; }
+    [Parameter]
+    public string? account_id { get; set; }
 
-        [Parameter]
-        public string? transaction_id { get; set; }
+    [Parameter]
+    public string? transaction_id { get; set; }
 
     private BlazingPennies.Shared.Models.Transaction transaction = new();
+    private decimal Total => transaction.details.Sum(detail => detail.value);
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
 
     protected override async Task OnInitializedAsync()
     {
         editContext = new EditContext(transaction);
-        transaction_id ??= "";
+        transaction_id ??= Guid.NewGuid().ToString();
         transaction.id = transaction_id;
+        transaction.user_id = await auth.CurrentUserId();
 
         if (transaction_id == "")
         {
-            transaction_id = Guid.NewGuid().ToString();
-            // Get active accounts for the current fund
-            var accountsUrl = $"https://pennypincher.x10.bz/pennydev/account/list.php?";// user_id={user_id}&status=active";
-            var accounts = await Http.GetFromJsonAsync<List<BlazingPennies.Shared.Models.Account>>(accountsUrl);
+            // Get active funds
+            var funds = await Http.GetFromJsonAsync<List<BlazingPennies.Shared.Models.Fund>>($"https://pennypincher.x10.bz/pennydev/funds/list.php?filter_inactive=true&user_id={transaction.user_id}");
 
             // Prepopulate transaction details with empty entries for every active account
-            foreach (var account in accounts)
+            foreach (var fund in funds)
             {
                 transaction.details.Add(new BlazingPennies.Shared.Models.TransactionDetail
                     {
-                        account_id = account.id,
+                        account_id = account_id,
                         transaction_id = transaction_id,
                         value = 0,
                         description = ""
@@ -90,14 +87,12 @@
             if (transaction_tmp == null)
             {
                 //transaction not found
-                NavigationManager.NavigateTo($"/fund/{fund_id}", true);
+                NavigationManager.NavigateTo($"/account/{account_id}", true);
                 return;
             }
             transaction = transaction_tmp;
         }
         transaction.id = transaction_id;
-
-
 
         editContext.OnValidationRequested += HandleValidationRequested;
         messageStore = new ValidationMessageStore(editContext);
@@ -113,6 +108,7 @@
 
     private async Task OnHandleValidFormSubmit()
     {
+        transaction.amount = Total;
         var transactionDetailsJson = System.Text.Json.JsonSerializer.Serialize(transaction.details);
 
         var transactionFormContent = new FormUrlEncodedContent(new[]

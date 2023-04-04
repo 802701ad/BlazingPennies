@@ -5,6 +5,7 @@
 @attribute [Authorize]
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IAuthService auth
 
 <PageTitle>@(fund_id?.Length > 0 ? "Edit" : "New") Fund</PageTitle>
 
@@ -27,10 +28,10 @@
 </EditForm>
 
 @code {
-    [Parameter]
-    public string? fund_id { get; set; }
+        [Parameter]
+        public string? fund_id { get; set; }
 
-    private BlazTest.Shared.Models.Fund fund = new();
+    private BlazingPennies.Shared.Models.Fund fund = new();
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
 
@@ -47,7 +48,7 @@
         else
         {
             var url = "https://pennypincher.x10.bz/pennydev/fund/get.php?id=" + System.Web.HttpUtility.UrlEncode(fund_id);
-            var fund_tmp = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Fund>(url);
+            var fund_tmp = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Fund>(url);
 
             if (fund_tmp == null)
             {
@@ -59,10 +60,7 @@
         }
         fund.id = fund_id;
 
-        #if DEBUG
-        fund.user_id = "5aa5d5e5-5f3c-44a5-84d5-6c9e6f9711db";
-        #endif
-
+        fund.user_id = await auth.CurrentUserId();
         
         editContext.OnValidationRequested += HandleValidationRequested;
         messageStore = new ValidationMessageStore(editContext);

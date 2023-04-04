@@ -30,7 +30,7 @@
     [Parameter]
     public string? account_id { get; set; }
 
-    private BlazTest.Shared.Models.Account account=new();
+    private BlazingPennies.Shared.Models.Account account = new();
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
 
@@ -47,7 +47,7 @@
         else
         {
             var url = "https://pennypincher.x10.bz/pennydev/account/get.php?id=" + System.Web.HttpUtility.UrlEncode(account_id);
-            var account_tmp = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Account>(url);
+            var account_tmp = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Account>(url);
 
             if (account_tmp == null)
             {

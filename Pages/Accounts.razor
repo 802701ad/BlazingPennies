@@ -34,11 +34,11 @@ else
 
 
 @code {
-    private BlazTest.Shared.Models.Account[] accounts;
+    private BlazingPennies.Shared.Models.Account[] accounts;
 
     protected override async Task OnInitializedAsync()
     {
-        accounts = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Account[]>("https://pennypincher.x10.bz/pennydev/account/list.php");
+        accounts = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Account[]>("https://pennypincher.x10.bz/pennydev/account/list.php");
     }
 
     private async Task DeleteAccount(string id)
@@ -49,7 +49,7 @@ else
             if (response.IsSuccessStatusCode)
             {
                 // Refresh the account list after successful deletion
-                accounts = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Account[]>("https://pennypincher.x10.bz/pennydev/account/list.php");
+                accounts = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Account[]>("https://pennypincher.x10.bz/pennydev/account/list.php");
             }
             else
             {

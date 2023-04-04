@@ -1,5 +1,5 @@
 ﻿using BlazingPennies.Shared.BlazorApp.Services;
-using BlazTest.Shared.Models;
+using BlazingPennies.Shared.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Json;
@@ -13,8 +13,20 @@ namespace BlazingPennies.Shared
 {
     public class RegisterRequest
     {
+        public string user_id { get; set; }
         [Required]
-        public string UserName { get; set; }
+        public string FIRST_NAME { get; set; }
+        [Required]
+        public string LAST_NAME { get; set; }
+        [Required]
+        public string email { get; set; }
+        [Required]
+        private string _userName;
+        public string UserName
+        {
+            get => _userName;
+            set => _userName = value.ToLower();
+        }
         [Required]
         public string Password { get; set; }
         [Required]
@@ -46,6 +58,7 @@ namespace BlazingPennies.Shared
         Task Login(LoginRequest loginRequest);
         Task Register(RegisterRequest registerRequest);
         Task Logout();
+        Task<string> CurrentUserId();
         Task<CurrentUser> CurrentUserInfo();
     }
 
@@ -58,6 +71,12 @@ namespace BlazingPennies.Shared
             _localStorageService = localStorageService;
             _httpClient = httpClient;
         }
+
+        public async Task<string> CurrentUserId()
+        {
+            return await _localStorageService.GetItem<string>("user_id") ?? "";
+        }
+
         public async Task<CurrentUser> CurrentUserInfo()
         {
 
@@ -101,7 +120,17 @@ namespace BlazingPennies.Shared
         }
         public async Task Register(RegisterRequest registerRequest)
         {
-            var result = await _httpClient.PostAsJsonAsync("api/auth/register", registerRequest);
+            var values = new Dictionary<string, string>
+            {
+                { "FIRST_NAME", registerRequest.FIRST_NAME },
+                { "LAST_NAME", registerRequest.LAST_NAME },
+                { "email", registerRequest.email },
+                { "UserName", registerRequest.UserName },
+                { "Password", registerRequest.Password },
+                { "user_id", Guid.NewGuid().ToString() } //pass the user_id as a new guid
+            };
+
+            var result = await _httpClient.PostAsync("https://pennypincher.x10.bz/pennydev/user/register.php", new FormUrlEncodedContent(values));
             if (result.StatusCode == System.Net.HttpStatusCode.BadRequest) throw new Exception(await result.Content.ReadAsStringAsync());
             result.EnsureSuccessStatusCode();
         }

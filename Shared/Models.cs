@@ -1,7 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.Metrics;
 
 
-namespace BlazTest.Shared.Models
+namespace BlazingPennies.Shared.Models
 {
     public class Account
     {
@@ -72,12 +75,48 @@ namespace BlazTest.Shared.Models
 
     public class User
     {
-        public string USER_ID { get; set; }
-        public string PASS { get; set; }
-        public string user { get; set; }
-        public string EMAIL { get; set; }
-        public string FIRST_NAME { get; set; }
-        public string LAST_NAME { get; set; }
+        private string? _userId;
+        private string? _pass;
+        private string? _user;
+        private string? _email;
+        private string? _firstName;
+        private string? _lastName;
+
+        public string USER_ID
+        {
+            get { return _userId ?? ""; }
+            set { _userId = value; }
+        }
+
+        public string PASS
+        {
+            get { return _pass ?? ""; }
+            set { _pass = value; }
+        }
+
+        public string user
+        {
+            get { return _user ?? ""; }
+            set { _user = value; }
+        }
+
+        public string EMAIL
+        {
+            get { return _email ?? ""; }
+            set { _email = value; }
+        }
+
+        public string FIRST_NAME
+        {
+            get { return _firstName ?? ""; }
+            set { _firstName = value; }
+        }
+
+        public string LAST_NAME
+        {
+            get { return _lastName ?? ""; }
+            set { _lastName = value; }
+        }
     }
 }
 //{ "user_id": "1", "id": "1", "name": "A", "comment": "comment" }

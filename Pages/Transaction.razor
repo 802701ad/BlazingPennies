@@ -53,7 +53,7 @@
         [Parameter]
         public string? transaction_id { get; set; }
 
-    private BlazTest.Shared.Models.Transaction transaction = new();
+    private BlazingPennies.Shared.Models.Transaction transaction = new();
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
 
@@ -68,12 +68,12 @@
             transaction_id = Guid.NewGuid().ToString();
             // Get active accounts for the current fund
             var accountsUrl = $"https://pennypincher.x10.bz/pennydev/account/list.php?";// user_id={user_id}&status=active";
-            var accounts = await Http.GetFromJsonAsync<List<BlazTest.Shared.Models.Account>>(accountsUrl);
+            var accounts = await Http.GetFromJsonAsync<List<BlazingPennies.Shared.Models.Account>>(accountsUrl);
 
             // Prepopulate transaction details with empty entries for every active account
             foreach (var account in accounts)
             {
-                transaction.details.Add(new BlazTest.Shared.Models.TransactionDetail
+                transaction.details.Add(new BlazingPennies.Shared.Models.TransactionDetail
                     {
                         account_id = account.id,
                         transaction_id = transaction_id,
@@ -85,7 +85,7 @@
         else
         {
             var url = "https://pennypincher.x10.bz/pennydev/transaction/get.php?id=" + System.Web.HttpUtility.UrlEncode(transaction_id);
-            var transaction_tmp = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Transaction>(url);
+            var transaction_tmp = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Transaction>(url);
 
             if (transaction_tmp == null)
             {

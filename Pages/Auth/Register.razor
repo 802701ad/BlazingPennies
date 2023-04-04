@@ -1,41 +1,143 @@
 ﻿@page "/register"
-@layout MainLayout
+@using System.Net.Http
+@using System.Text.Json;
+@inject HttpClient Http
 @inject NavigationManager navigationManager
-@inject CustomStateProvider authStateProvider
-<h1 class="h2 font-weight-normal login-title">
-    Register
-</h1>
-<EditForm class="form-signin" OnValidSubmit="OnSubmit" Model="registerRequest">
+
+<h1>Register</h1>
+
+<EditForm Model="@RegisterRequest" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator />
-    <label for="inputUsername" class="sr-only">User Name</label>
-    <InputText id="inputUsername" class="form-control" placeholder="Username" autofocus @bind-Value="@registerRequest.UserName" />
-    <ValidationMessage For="@(() => registerRequest.UserName)" />
-    <label for="inputPassword" class="sr-only">Password</label>
-    <InputText type="password" id="inputPassword" class="form-control" placeholder="Password" @bind-Value="@registerRequest.Password" />
-    <ValidationMessage For="@(() => registerRequest.Password)" />
-    <label for="inputPasswordConfirm" class="sr-only">Password Confirmation</label>
-    <InputText type="password" id="inputPasswordConfirm" class="form-control" placeholder="Password Confirmation" @bind-Value="@registerRequest.PasswordConfirm" />
-    <ValidationMessage For="@(() => registerRequest.PasswordConfirm)" />
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Create account</button>
-    <label class="text-danger">@error</label>
-    <NavLink href="login">
-        <h6 class="font-weight-normal text-center">Already have an account? Click here to login</h6>
-    </NavLink>
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="first-name">First Name</label>
+        <InputText id="first-name" class="form-control" @bind-Value="RegisterRequest.FIRST_NAME" />
+        <ValidationMessage For="@(() => RegisterRequest.FIRST_NAME)" />
+    </div>
+    <div class="form-group">
+        <label for="last-name">Last Name</label>
+        <InputText id="last-name" class="form-control" @bind-Value="RegisterRequest.LAST_NAME" />
+        <ValidationMessage For="@(() => RegisterRequest.LAST_NAME)" />
+    </div>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <InputText id="email" class="form-control" @bind-Value="RegisterRequest.email" />
+        <ValidationMessage For="@(() => RegisterRequest.email)" />
+    </div>
+    <div class="form-group">
+        <label for="user-name">User Name</label>
+        <InputText id="user-name" class="form-control" @bind-Value="RegisterRequest.UserName" />
+        <ValidationMessage For="@(() => RegisterRequest.UserName)" />
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="RegisterRequest.Password" />
+        <ValidationMessage For="@(() => RegisterRequest.Password)" />
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <InputText type="password" id="inputPasswordConfirm" class="form-control" placeholder="Password Confirmation" @bind-Value="@RegisterRequest.PasswordConfirm" />
+        <ValidationMessage For="@(() => RegisterRequest.PasswordConfirm)" />
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Create</button>
+    </div>
 </EditForm>
-@functions {
-    RegisterRequest registerRequest { get; set; } = new RegisterRequest();
-    string error { get; set; }
-    async Task OnSubmit()
+
+@if (!string.IsNullOrEmpty(Message))
+{
+        <div class="alert alert-info">@Message</div>
+}
+@code {
+    public RegisterRequest RegisterRequest { get; set; } = new RegisterRequest();
+
+    public string Message { get; set; }
+
+    private async Task HandleValidSubmit()
     {
-        error = null;
-        try
+        //check if email or user name already exists in the database
+        var emailExists = await CheckEmailExists(RegisterRequest.email);
+        var userNameExists = await CheckUserNameExists(RegisterRequest.UserName.ToLower());
+
+        if (emailExists)
         {
-            await authStateProvider.Register(registerRequest);
+            Message = "This email is already taken.";
+            return;
+        }
+
+        if (userNameExists)
+        {
+            Message = "This user name is already taken.";
+            return;
+        }
+
+        RegisterRequest.user_id = RegisterRequest.user_id ?? Guid.NewGuid().ToString();
+
+        //call the register.php file using the C# code from the previous conversation
+        var values = new Dictionary<string, string>
+        {
+            { "first_name", RegisterRequest.FIRST_NAME },
+            { "last_name", RegisterRequest.LAST_NAME },
+            { "email", RegisterRequest.email },
+            { "user_name", RegisterRequest.UserName.ToLower() },
+            { "password", RegisterRequest.Password },
+            { "user_id",  RegisterRequest.user_id}
+        };
+
+        var result = await Http.PostAsync("https://pennypincher.x10.bz/pennydev/user/register.php", new FormUrlEncodedContent(values));
+
+        if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            var error = await result.Content.ReadAsStringAsync();
+            Message = error;
+            return;
+        }
+
+        if (result.IsSuccessStatusCode)
+        {
+            var response = await result.Content.ReadAsStringAsync();
+            var message = JsonSerializer.Deserialize<Dictionary<string, string>>(response)["message"];
+            Message = message;
             navigationManager.NavigateTo("");
+            return;
         }
-        catch (Exception ex)
+
+        Message = "Something went wrong. Please try again later.";
+    }
+
+
+    //helper methods to check email and user name existence
+    private async Task<bool> CheckEmailExists(string email)
+    {
+        var values = new Dictionary<string, string>
         {
-            error = ex.Message;
+            { "email", email }
+        };
+        var result = await Http.PostAsync("https://pennypincher.x10.bz/pennydev/user/check_email.php", new FormUrlEncodedContent(values));
+        if (result.IsSuccessStatusCode)
+        {
+            var response = await result.Content.ReadAsStringAsync();
+            var exists = JsonSerializer.Deserialize<Dictionary<string, bool>>(response)["exists"];
+            return exists;
         }
+        return false;
+    }
+
+    private async Task<bool> CheckUserNameExists(string userName)
+    {
+        var values = new Dictionary<string, string>
+        {
+            { "user_name", userName }
+        };
+        var result = await Http.PostAsync("https://pennypincher.x10.bz/pennydev/user/check_user.php", new FormUrlEncodedContent(values));
+        if (result.IsSuccessStatusCode)
+        {
+            var response = await result.Content.ReadAsStringAsync();
+            var exists = JsonSerializer.Deserialize<Dictionary<string, bool>>(response)["exists"];
+            return exists;
+        }
+        return true;
     }
 }

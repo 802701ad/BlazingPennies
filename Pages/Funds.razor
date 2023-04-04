@@ -1,6 +1,7 @@
 ﻿@page "/fund/list"
 @attribute [Authorize]
 @inject HttpClient Http
+@inject IAuthService auth
 
 <h1>Fund List</h1>
 
@@ -37,7 +38,7 @@ else
 
 
 @code {
-    private BlazTest.Shared.Models.Fund[] funds;
+    private BlazingPennies.Shared.Models.Fund[] funds;
 
     protected async Task Refresh()
     {
@@ -45,8 +46,9 @@ else
         funds = null;
         StateHasChanged();
 
-        funds = await Http.GetFromJsonAsync<BlazTest.Shared.Models.Fund[]>("https://pennypincher.x10.bz/pennydev/fund/list.php");
-        funds ??= new BlazTest.Shared.Models.Fund[0];
+        string user_id = await auth.CurrentUserId();
+        funds = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Fund[]>($"https://pennypincher.x10.bz/pennydev/fund/list.php?user_id={user_id}");
+        funds ??= new BlazingPennies.Shared.Models.Fund[0];
 
         // Update UI after data is fetched
         await InvokeAsync(StateHasChanged);

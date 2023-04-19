@@ -28,19 +28,30 @@ namespace BlazingPennies.Shared.Models
         [StringLength(250, ErrorMessage = "Name is too long.")]
         public string? name { get; set; }
 
+        [Range(0,1)]
+        public int is_active { get; set; }
+
         [StringLength(12000, ErrorMessage = "Name is too long.")]
         public string? comment { get; set; }
     }
 
     public class Transaction
     {
+        public Transaction()
+        {
+            // Initialize details to an empty list
+            details = new List<TransactionDetail>();
+
+            date = DateTime.Now;
+        }
+
         [Required]
         public string user_id { get; set; }
         [Required]
         public string id { get; set; }
         [Required]
         [DataType(DataType.Date)]
-        public string date { get; set; }
+        public DateTime date { get; set; }
         [Required]
         public string account_id { get; set; }
         [Required]
@@ -64,6 +75,8 @@ namespace BlazingPennies.Shared.Models
 
         [Required(ErrorMessage = "The fund ID is required.")]
         public string fund_id { get; set; }
+
+        public string fund_title { get; set; }
 
         [StringLength(500, ErrorMessage = "The description is too long.")]
         public string description { get; set; }

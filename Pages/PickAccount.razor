@@ -1,0 +1,51 @@
+﻿@page "/transactions/pickaccount"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject IAuthService auth
+
+<h1>Account List</h1>
+
+@if (accounts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p><a href="/account">Create new account</a></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in accounts)
+            {
+                <tr>
+                    <td><a href="/account/@account.id/transactions">@account.name &nbsp;</a></td>
+                    <td>@account.comment</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private BlazingPennies.Shared.Models.Account[] accounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Show loading spinner while data is being fetched
+        accounts = null;
+        StateHasChanged();
+
+        string user_id = await auth.CurrentUserId();
+        accounts = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Account[]>($"https://pennypincher.x10.bz/pennydev/account/list.php?user_id={user_id}");
+
+        // Update UI after data is fetched
+        await InvokeAsync(StateHasChanged);
+    }
+     
+}

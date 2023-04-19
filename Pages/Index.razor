@@ -2,8 +2,8 @@
 @attribute [Authorize]
 <PageTitle>Index</PageTitle>
 
-<h1>Hello,  @currentUser.FIRST_NAME @currentUser.LAST_NAME!</h1>
-<div>Your id is @currentUser.Id</div>
+<h1>Hello,  @currentUser?.FIRST_NAME @currentUser?.LAST_NAME!</h1>
+<div>Your id is @currentUser?.Id</div>
 @code {
 
     [Inject]

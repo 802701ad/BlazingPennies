@@ -19,17 +19,18 @@
     <ValidationMessage For="@(() => fund.name)" />
     <label for="inputName">Comments:</label>
     <InputTextArea @bind-Value="@fund.comment"></InputTextArea>
-    <div style="border: 1px black solid">
-        <p>Utilizer Nomen: @fund.user_id</p>
-        <p>Ego: @fund.id</p>
+    <div>
+    <label for="isActive" style="display:inline">Is Active:</label> <InputCheckbox id="isActive" @bind-Value="@fund.isActive"></InputCheckbox>
     </div>
-    <ValidationSummary />
+    <div>
+        <ValidationSummary />
+    </div>
     <button type="submit">Submit</button>
 </EditForm>
 
 @code {
-        [Parameter]
-        public string? fund_id { get; set; }
+    [Parameter]
+    public string? fund_id { get; set; }
 
     private BlazingPennies.Shared.Models.Fund fund = new();
     private EditContext? editContext;
@@ -44,6 +45,7 @@
         if (fund_id == "")
         {
             fund_id = Guid.NewGuid().ToString();
+            fund.is_active = 1;
         }
         else
         {
@@ -89,7 +91,8 @@
         new KeyValuePair<string, string>("id", fund.id),
         new KeyValuePair<string, string>("name", fund.name),
         new KeyValuePair<string, string>("comment", fund.comment),
-        new KeyValuePair<string, string>("user_id", fund.user_id)
+        new KeyValuePair<string, string>("user_id", fund.user_id),
+        new KeyValuePair<string, string>("is_active", fund.is_active.ToString())
     });
 
         var url = "https://pennypincher.x10.bz/pennydev/fund/put.php";
@@ -105,8 +108,7 @@
         else
         {
             // Display error message
-            var errorResponse = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(errorResponse);
+            Console.WriteLine(result);
         }
     }
 

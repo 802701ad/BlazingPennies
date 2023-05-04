@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Specialized;
+using System.Text.RegularExpressions;
+using System.Web;
 
 namespace BlazingPennies.Shared
 {
@@ -16,7 +18,9 @@ namespace BlazingPennies.Shared
         {
             if (input == null) return 0;
             // Use a regular expression to match all the decimal numbers in the input, except those preceded by a backslash
-            MatchCollection matches = Regex.Matches(input, @"(?<!\\)-?\d+(?:\.\d+)?");
+            //MatchCollection matches = Regex.Matches(input, @"(?<!\\)-?\d+(?:\.\d+)?");
+            //letters must be separated from numbers by punctuation
+            MatchCollection matches = Regex.Matches(input, @"(?<!\\)(?<!\w)-?\d+(?:\.\d+)?(?!\w)");
 
             // Initialize a variable to store the sum
             decimal sum = 0;
@@ -32,6 +36,24 @@ namespace BlazingPennies.Shared
 
             // Return the sum
             return sum;
+        }
+
+        public static string BackendUrl(string relativeUrl, Dictionary<string, string> additional_parameters)
+        {
+            string root = "https://pennypincher.x10.bz/pennydev/";
+            // Create a UriBuilder object from the root and relativeUrl
+            UriBuilder builder = new UriBuilder(new Uri(new Uri(root), relativeUrl));
+            // Get the query string from the builder as a NameValueCollection
+            NameValueCollection query = HttpUtility.ParseQueryString(builder.Query);
+            // Loop through the additional_parameters and add or update them in the query
+            foreach (var pair in additional_parameters)
+            {
+                query[pair.Key] = pair.Value;
+            }
+            // Set the query back to the builder
+            builder.Query = query.ToString();
+            // Return the absolute URL from the builder
+            return builder.ToString();
         }
     }
 

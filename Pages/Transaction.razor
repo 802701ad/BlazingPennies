@@ -27,6 +27,10 @@
         <InputDate id="inputDate" @bind-Value="@transaction.date"></InputDate>
         <ValidationMessage For="@(() => transaction.date)" />
     </div>
+    <div class="field">
+        <label for="isActive">Date:</label>
+        <InputCheckbox id="isActive" @bind-Value="@transaction.isActive"></InputCheckbox>
+    </div>
     <h2>Transaction Details</h2>
     <h3>Total: @transaction.amount.ToString("C")</h3>
     <table>
@@ -74,6 +78,7 @@
         transaction_id ??= Guid.NewGuid().ToString();
         transaction.id = transaction_id;
         transaction.user_id = await auth.CurrentUserId();
+        transaction.account_id = account_id??"";
 
         var url = "https://pennypincher.x10.bz/pennydev";
         if (isNew)
@@ -100,15 +105,20 @@
         else
         {
             url += "/transaction/get.php?id=" + System.Web.HttpUtility.UrlEncode(transaction_id);
+            url += "&" + "user_id=" + System.Web.HttpUtility.UrlEncode(transaction.user_id);
+            //string json = await Http.GetStringAsync(url);
+
             var transaction_tmp = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Transaction>(url);
+
 
             if (transaction_tmp == null)
             {
                 //transaction not found
-                NavigationManager.NavigateTo($"/account/{account_id}", true);
+                NavigationManager.NavigateTo($"/account/{System.Web.HttpUtility.UrlEncode(account_id)}", true);
                 return;
             }
             transaction = transaction_tmp;
+            
         }
         transaction.id = transaction_id;
 
@@ -131,10 +141,13 @@
         var transactionFormContent = new FormUrlEncodedContent(new[]
         {
             new KeyValuePair<string, string>("id", transaction.id),
+            new KeyValuePair<string, string>("user_id", transaction.user_id),
+            new KeyValuePair<string, string>("account_id", transaction.account_id),
+            new KeyValuePair<string, string>("name", transaction.name),
             new KeyValuePair<string, string>("date",  transaction.date.ToString()),
             new KeyValuePair<string, string>("amount", transaction.amount.ToString()),
-            new KeyValuePair<string, string>("description", transaction.comment),
-            new KeyValuePair<string, string>("DETAILS", transactionDetailsJson),
+            new KeyValuePair<string, string>("comment", transaction.comment),
+            new KeyValuePair<string, string>("details", transactionDetailsJson),
     });
 
         var transactionUrl = "https://pennypincher.x10.bz/pennydev/transaction/put.php";
@@ -143,12 +156,12 @@
 
         if (!transactionResponse.IsSuccessStatusCode)
         {
-            // Display error message
-            var errorResponse = await transactionResponse.Content.ReadAsStringAsync();
-            Console.WriteLine(errorResponse);
+            Console.WriteLine("ERROR:" + transactionResult);
         }
         else 
-            NavigationManager.NavigateTo("/fund/list", true);
+        {
+            NavigationManager.NavigateTo($"/account/{System.Web.HttpUtility.UrlEncode(transaction.account_id)}/transactions", true);
+        }
     }
 
 

@@ -48,7 +48,10 @@ else
         StateHasChanged();
 
         string user_id = await auth.CurrentUserId();
-        transactions = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Transaction[]>($"https://pennypincher.x10.bz/pennydev/transaction/list.php?user_id={user_id}");
+        string url = Utility.BackendUrl("transaction/list.php", new Dictionary<string, string>() { { "user_id", user_id } });
+        string json = await Http.GetStringAsync(url);
+        //transactions = System.Text.Json.JsonSerializer.Deserialize<BlazingPennies.Shared.Models.Transaction[]>(json);//BROKEN!
+        transactions = Newtonsoft.Json.JsonConvert.DeserializeObject<BlazingPennies.Shared.Models.Transaction[]>(json);
 
         await InvokeAsync(StateHasChanged);
     }

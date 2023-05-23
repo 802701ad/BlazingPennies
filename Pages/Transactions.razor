@@ -2,71 +2,119 @@
 @attribute [Authorize]
 @inject HttpClient Http
 @inject IAuthService auth
+@inject IJSRuntime JSRuntime
 
 <h1>Transactions List</h1>
 
-@if (transactions == null)
+@if (isLoading)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
+    <h2>
+        Balance for Account: @account.name = @string.Format("{0:C}", account.balance)
+    </h2>
     <p><a href="/accounts/@(account_id)/transaction/new">Create new transaction</a></p>
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Comment</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var transaction in transactions)
-            {
+    <div id="transactionDiv" style="height: 70vh; overflow-y: scroll;" @onscroll="@(() => HandleScroll())">
+        <table>
+            <thead>
                 <tr>
-                    <td><a href="/transactions/edit/@transaction.id">@transaction.name &nbsp;<span class="oi oi-pencil"></span></a></td>
-                    <td>@transaction.comment</td>
-                    <td>@transaction.amount</td>
-                    <td><button @onclick="@(() => DeleteRecord(transaction.id))" class="btn-delete"><span class="oi oi-trash"></span></button></td>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Amount</th>
                 </tr>
-            }
+            </thead>
+            <tbody>
+                @{
+                    var recordIndex = 0;
+                }
+                @foreach (var transaction in transactions)
+                {
+                    <tr>
+                        <td id="record_@(recordIndex++)"><a href="/transactions/edit/@transaction.id">@transaction.name &nbsp;<span class="oi oi-pencil"></span></a></td>
+                        <td>@transaction.date</td>
+                        <td>@transaction.amount</td>
+                        <td><button @onclick="@(() => DeleteRecord(transaction.id))" class="btn-delete"><span class="oi oi-trash"></span></button></td>
+                    </tr>
+                }
         </tbody>
     </table>
-}
+    </div>
 
+}
 
 @code {
     [Parameter]
     public string? account_id { get; set; }
 
+    private BlazingPennies.Shared.Models.Account account;
+
     private BlazingPennies.Shared.Models.Transaction[] transactions;
+
+    private int currentPage = 1;
+    private const int pageSize = 20;
+    
+
+    private bool isLoading = false;
 
     protected async Task Refresh()
     {
-        // Show loading spinner while data is being fetched
-        transactions = null;
+        if (isLoading) return;
+        isLoading = true;
+
         StateHasChanged();
 
         string user_id = await auth.CurrentUserId();
-        string url = Utility.BackendUrl("transaction/list.php", new Dictionary<string, string>() { { "user_id", user_id } });
+        string url = Utility.BackendUrl("transaction/list.php", new Dictionary<string, string>() { { "user_id", user_id }, { "page", currentPage.ToString() }, { "pageSize", pageSize.ToString() } });
         string json = await Http.GetStringAsync(url);
         //transactions = System.Text.Json.JsonSerializer.Deserialize<BlazingPennies.Shared.Models.Transaction[]>(json);//BROKEN!
-        transactions = Newtonsoft.Json.JsonConvert.DeserializeObject<BlazingPennies.Shared.Models.Transaction[]>(json);
+        var transactions_to_add = Newtonsoft.Json.JsonConvert.DeserializeObject<BlazingPennies.Shared.Models.Transaction[]>(json);
+        if (transactions == null)
+            transactions = transactions_to_add;
+        else
+            transactions=transactions.Concat(transactions_to_add)?.ToArray();
 
-        await InvokeAsync(StateHasChanged);
+        await GetAccountBalance();
+        isLoading = false;
+        StateHasChanged();
     }
+
 
     protected override async Task OnInitializedAsync()
     {
+        transactions = null;
         Refresh();
     }
 
     private async Task DeleteRecord(string id)
     {
-       
-            var response = await Http.DeleteAsync($"https://pennypincher.x10.bz/pennydev/transaction/delete.php?id={id}");
-            response.EnsureSuccessStatusCode();
-            Refresh();
+        isLoading = true;
+        StateHasChanged();
+        string url=Utility.BackendUrl("transaction/delete.php", new Dictionary<string, string>() { { "id", id } });
+        string result = await Http.GetStringAsync(url);
+        transactions = null;
+        isLoading = false;
+        await Refresh();
     }
 
+    private async Task GetAccountBalance()
+    {
+        string url = Utility.BackendUrl("account/get.php?withBalance=true", new Dictionary<string, string>() { { "id", account_id } });
+        string json = await Http.GetStringAsync(url);
+        account = Newtonsoft.Json.JsonConvert.DeserializeObject<BlazingPennies.Shared.Models.Account>(json);
+    }
+
+    private async Task HandleScroll()
+    {
+        // Check if we are close to the bottom of the container element
+        var timeToScroll=await JSRuntime.InvokeAsync<bool>("IsTimeToScrollTransactions", new object[] { });
+
+        if (timeToScroll)
+        {
+            currentPage++;
+            await Refresh();
+        }
+        
+    }
 }

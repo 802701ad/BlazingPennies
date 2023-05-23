@@ -80,12 +80,11 @@
         transaction.user_id = await auth.CurrentUserId();
         transaction.account_id = account_id??"";
 
-        var url = "https://pennypincher.x10.bz/pennydev";
+
         if (isNew)
         {
             // Get active funds
-            url += $"/fund/list.php?filter_inactive=true&user_id={System.Web.HttpUtility.UrlEncode(transaction.user_id)}";
-            var funds = await Http.GetFromJsonAsync<List<BlazingPennies.Shared.Models.Fund>>(url);
+            var funds = await Http.GetFromJsonAsync<List<BlazingPennies.Shared.Models.Fund>>(Utility.BackendUrl("/fund/list.php", new Dictionary<string, string> { { "filter_inactive","true" }, {"user_id", transaction.user_id } }));
 
             // Prepopulate transaction details with empty entries for every active account
             transaction.details = new List<Shared.Models.TransactionDetail>();
@@ -104,10 +103,8 @@
         }
         else
         {
-            url += "/transaction/get.php?id=" + System.Web.HttpUtility.UrlEncode(transaction_id);
-            url += "&" + "user_id=" + System.Web.HttpUtility.UrlEncode(transaction.user_id);
+            string url= Utility.BackendUrl("/transaction/get.php", new Dictionary<string, string> { { "id", transaction_id }, { "user_id", transaction.user_id } });
             //string json = await Http.GetStringAsync(url);
-
             var transaction_tmp = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Transaction>(url);
 
 

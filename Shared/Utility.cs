@@ -1,4 +1,7 @@
-﻿using System.Collections.Specialized;
+﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Collections.Specialized;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -55,6 +58,21 @@ namespace BlazingPennies.Shared
             // Return the absolute URL from the builder
             return builder.ToString();
         }
+
+        public static string FormatJson(string json)
+        {
+            try
+            {
+                JToken.Parse(json);
+                return JValue.Parse(json).ToString(Formatting.Indented);
+            }
+            catch (JsonReaderException)
+            {
+                return "";
+            }
+        }
     }
+
+    
 
 }

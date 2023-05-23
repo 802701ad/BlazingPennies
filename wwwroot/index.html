@@ -12,6 +12,17 @@
     <link href="css/open-iconic/font/css/open-iconic-bootstrap.min.css" rel="stylesheet" />
     
     <link href="BlazingPennies.styles.css" rel="stylesheet" />
+    <script>
+        
+        window.IsTimeToScrollTransactions= function () {
+            let d = document.getElementById("transactionDiv");
+            if(!d) return false;
+            let scrollTop = d.scrollTop;
+            let scrollHeight = d.scrollHeight;
+            let clientHeight = d.clientHeight;
+            return (scrollHeight - scrollTop <= clientHeight * 2);
+        }
+    </script>
 </head>
 
 <body>

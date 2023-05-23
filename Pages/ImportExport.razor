@@ -1,0 +1,118 @@
+﻿@page "/auth/ImportExport"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject IAuthService auth
+@inject IJSRuntime JSRuntime
+
+<h1>Import/Export My Data</h1>
+
+@if (isLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+
+    <div>
+        <h2>Import</h2>
+        <p>Enter or paste the JSON data in the text area below and click the Import button.</p>
+        <textarea id="json-input" rows="10" cols="80" @bind-value=@userData @bind-value:event="oninput"></textarea>
+        <button @onclick="()=>PreviewJson()">Preview</button>
+        <button @onclick="()=>ImportJson()">Import</button>
+    </div>
+
+    <div>
+        <pre style="color: @messageColor">@message</pre>
+    </div>
+
+    // Add a button to download the JSON string as a file
+    // Source: https://stackoverflow.com/questions/64317638/how-to-download-a-json-file-in-blazor
+    // Note: this may not work in all browsers or scenarios
+    // You may need to use a third-party library or a different approach
+    // Use it at your own risk
+
+      
+
+    // Add a button to call the download method with the json and a filename
+    // You can change the filename as you wish
+    // You may also want to add some styling or validation to the button
+    <button @onclick='() => DownloadJson(userData, "myBlazorPincherData.json")'>Download JSON File</button>
+}
+
+
+@code {
+    private string userData="";
+    private bool isLoading = false;
+    private string message="";
+    string user_id="";
+    string messageColor = "green";
+
+    protected async Task Refresh()
+    {
+        // Show loading spinner while data is being fetched
+        isLoading = true;
+        StateHasChanged();
+
+        user_id = await auth.CurrentUserId();
+        userData = await Http.GetStringAsync(Utility.BackendUrl("account/export.php", new Dictionary<string, string>() { ["user_id"] = user_id ?? "" }));
+        userData=Utility.FormatJson(userData);
+
+        isLoading = false;
+        messageColor = "green";
+        message = "Your existing data is above.";
+        // Update UI after data is fetched
+        StateHasChanged();
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
+    }
+
+   
+    // Create a method to import the JSON data from the text area and provide a preview
+    private async Task<bool> PreviewJson()
+    {
+        // Try to parse the JSON data using System.Text.Json.JsonDocument.Parse
+        // This will correct any errors in the JSON syntax and format it nicely
+        // If the JSON data is invalid, it will throw an exception that can be caught and handled
+        try
+        {
+            userData=Utility.FormatJson(userData);
+            messageColor = "green";
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Refresh();
+            messageColor= "red";
+            message = "Error: Invalid JSON data. " + ex.Message;
+        }
+        return false;
+    }
+
+    private async void ImportJson()
+    {
+        if (!(await PreviewJson())) return;
+
+        var formContent = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("data", userData),
+        });
+
+        var response = await Http.PostAsync(Utility.BackendUrl("account/import.php", new Dictionary<string, string>() { ["user_id"] = user_id ?? "" }), formContent);
+        var result = await response.Content.ReadAsStringAsync();
+    }
+
+    // Create a method to download the JSON string as a file
+    private void DownloadJson(string json, string filename)
+    {
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        var base64 = Convert.ToBase64String(bytes);
+        var url = $"data:application/json;base64,{base64}";
+        var script = $"window.downloadFile('{url}', '{filename}')";
+        JSRuntime.InvokeVoidAsync("eval", script);
+    }
+
+}

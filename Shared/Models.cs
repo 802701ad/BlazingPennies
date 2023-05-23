@@ -18,6 +18,8 @@ namespace BlazingPennies.Shared.Models
 
         [StringLength(12000, ErrorMessage = "Name is too long.")]
         public string? comment { get; set; }
+
+        public decimal? balance;
     }
 
     public class Fund

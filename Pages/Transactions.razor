@@ -33,7 +33,7 @@ else
                 {
                     <tr>
                         <td id="record_@(recordIndex++)"><a href="/transactions/edit/@transaction.id">@transaction.name &nbsp;<span class="oi oi-pencil"></span></a></td>
-                        <td>@transaction.date</td>
+                        <td>@transaction.date.ToShortDateString()</td>
                         <td>@transaction.amount</td>
                         <td><button @onclick="@(() => DeleteRecord(transaction.id))" class="btn-delete"><span class="oi oi-trash"></span></button></td>
                     </tr>
@@ -53,8 +53,8 @@ else
     private BlazingPennies.Shared.Models.Transaction[] transactions;
 
     private int currentPage = 1;
-    private const int pageSize = 20;
-    
+    private const int pageSize = 100;
+
 
     private bool isLoading = false;
 
@@ -65,19 +65,24 @@ else
 
         StateHasChanged();
 
+        int lastRecordNumber = transactions?.Length??0-1;
         string user_id = await auth.CurrentUserId();
         string url = Utility.BackendUrl("transaction/list.php", new Dictionary<string, string>() { { "user_id", user_id }, { "page", currentPage.ToString() }, { "pageSize", pageSize.ToString() } });
         string json = await Http.GetStringAsync(url);
-        //transactions = System.Text.Json.JsonSerializer.Deserialize<BlazingPennies.Shared.Models.Transaction[]>(json);//BROKEN!
         var transactions_to_add = Newtonsoft.Json.JsonConvert.DeserializeObject<BlazingPennies.Shared.Models.Transaction[]>(json);
         if (transactions == null)
+        {
+            await GetAccountBalance();
             transactions = transactions_to_add;
+        }
         else
             transactions=transactions.Concat(transactions_to_add)?.ToArray();
-
-        await GetAccountBalance();
+        
         isLoading = false;
         StateHasChanged();
+
+        if (lastRecordNumber > -1) await JSRuntime.InvokeAsync<bool>("ScrollToTransaction", new object[] { lastRecordNumber });
+
     }
 
 
@@ -90,7 +95,7 @@ else
     private async Task DeleteRecord(string id)
     {
         isLoading = true;
-        StateHasChanged();
+        StateHasChanged();//TODO: add confirmation dialog
         string url=Utility.BackendUrl("transaction/delete.php", new Dictionary<string, string>() { { "id", id } });
         string result = await Http.GetStringAsync(url);
         transactions = null;

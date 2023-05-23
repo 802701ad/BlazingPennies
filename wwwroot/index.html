@@ -22,6 +22,9 @@
             let clientHeight = d.clientHeight;
             return (scrollHeight - scrollTop <= clientHeight * 2);
         }
+        window.ScrollToTransaction = function (RowNumber) {
+            document.getElementById("record_" + RowNumber).scrollIntoView();
+        }
     </script>
 </head>
 

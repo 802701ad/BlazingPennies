@@ -41,8 +41,9 @@ namespace BlazingPennies.Shared
             return sum;
         }
 
-        public static string BackendUrl(string relativeUrl, Dictionary<string, string> additional_parameters)
+        public static string BackendUrl(string relativeUrl, Dictionary<string, string> additional_parameters=null)
         {
+            if (additional_parameters==null) additional_parameters = new Dictionary<string, string>();
             string root = "https://pennypincher.x10.bz/pennydev/";
             // Create a UriBuilder object from the root and relativeUrl
             UriBuilder builder = new UriBuilder(new Uri(new Uri(root), relativeUrl));

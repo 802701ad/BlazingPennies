@@ -56,6 +56,7 @@
     </table>
     <ValidationSummary />
     <button type="submit" class="button is-primary">Submit</button>
+    <button type="button" class="button" @onclick="DuplicateTransaction" disabled="@isNew">Duplicate This Transaction</button>
 </EditForm>
 
 @code {
@@ -84,7 +85,7 @@
         if (isNew)
         {
             // Get active funds
-            var funds = await Http.GetFromJsonAsync<List<BlazingPennies.Shared.Models.Fund>>(Utility.BackendUrl("/fund/list.php", new Dictionary<string, string> { { "filter_inactive","true" }, {"user_id", transaction.user_id } }));
+            var funds = await Http.GetFromJsonAsync<List<BlazingPennies.Shared.Models.Fund>>(Utility.BackendUrl("fund/list.php", new Dictionary<string, string> { { "filter_inactive","true" }, {"user_id", transaction.user_id } }));
 
             // Prepopulate transaction details with empty entries for every active account
             transaction.details = new List<Shared.Models.TransactionDetail>();
@@ -103,7 +104,7 @@
         }
         else
         {
-            string url= Utility.BackendUrl("/transaction/get.php", new Dictionary<string, string> { { "id", transaction_id }, { "user_id", transaction.user_id } });
+            string url= Utility.BackendUrl("transaction/get.php", new Dictionary<string, string> { { "id", transaction_id }, { "user_id", transaction.user_id } });
             //string json = await Http.GetStringAsync(url);
             var transaction_tmp = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Transaction>(url);
 
@@ -115,7 +116,7 @@
                 return;
             }
             transaction = transaction_tmp;
-            
+
         }
         transaction.id = transaction_id;
 
@@ -147,7 +148,7 @@
             new KeyValuePair<string, string>("details", transactionDetailsJson),
     });
 
-        var transactionUrl = "https://pennypincher.x10.bz/pennydev/transaction/put.php";
+        var transactionUrl = Utility.BackendUrl("./transaction/put.php");
         var transactionResponse = await Http.PostAsync(transactionUrl, transactionFormContent);
         var transactionResult = await transactionResponse.Content.ReadAsStringAsync();
 
@@ -169,6 +170,17 @@
         transaction.amount = transaction.details.Sum(detail => Convert.ToDecimal(detail.value));
         editContext?.NotifyValidationStateChanged();
         StateHasChanged();
+    }
+
+    private async Task DuplicateTransaction()
+    {
+
+        transaction.id = Guid.NewGuid().ToString();
+
+        transaction.date = DateTime.Now;
+
+        isNew = true;
+
     }
 
 }

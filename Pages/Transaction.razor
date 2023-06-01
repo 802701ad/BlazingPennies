@@ -28,8 +28,7 @@
         <ValidationMessage For="@(() => transaction.date)" />
     </div>
     <div class="field">
-        <label for="isActive">Date:</label>
-        <InputCheckbox id="isActive" @bind-Value="@transaction.isActive"></InputCheckbox>
+        <InputCheckbox id="isActive" @bind-Value="@transaction.isActive"></InputCheckbox> <label for="isActive">Active</label>
     </div>
     <h2>Transaction Details</h2>
     <h3>Total: @transaction.amount.ToString("C")</h3>
@@ -143,6 +142,7 @@
             new KeyValuePair<string, string>("account_id", transaction.account_id),
             new KeyValuePair<string, string>("name", transaction.name),
             new KeyValuePair<string, string>("date",  transaction.date.ToString()),
+            new KeyValuePair<string, string>("seq",  transaction.seq),
             new KeyValuePair<string, string>("amount", transaction.amount.ToString()),
             new KeyValuePair<string, string>("comment", transaction.comment),
             new KeyValuePair<string, string>("details", transactionDetailsJson),

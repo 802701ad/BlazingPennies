@@ -47,6 +47,7 @@ namespace BlazingPennies.Shared.Models
             details = new List<TransactionDetail>();
 
             date = DateTime.Now;
+            seq = DateTime.Now.Ticks.ToString().PadLeft(20, '0');
             isActive = true;
         }
 
@@ -60,6 +61,8 @@ namespace BlazingPennies.Shared.Models
         [Required]
         //[JsonConverter(typeof(CustomDateConverter))]
         public DateTime date { get; set; }
+
+        public string seq { get; set; }
 
         [Required]        
         public string account_id { get; set; }

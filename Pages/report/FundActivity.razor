@@ -1,0 +1,94 @@
+﻿@page "/Report/FundActivity/{fund_id}"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IAuthService auth
+
+<h1>Fund Activity Report - @fund_name</h1>
+
+@if (transactionData == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Transaction Name</th>
+                <th>Transaction Date</th>
+                <th>Transaction Value</th>
+                <th>Fund Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in transactionData)
+            {
+                <tr>
+                    <td><a href="/transactions/edit/@transaction.transaction_id">@transaction.transaction_name</a></td>
+                    <td>@transaction.transaction_date.ToShortDateString()</td>
+                    <td>@transaction.transaction_value?.ToString("C")</td>
+                    <td>@transaction.fund_balance?.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    // Define a class to store the transaction data
+    public class TransactionData
+    {
+        public string transaction_id { get; set; }
+        public DateTime transaction_date { get; set; }
+        public string transaction_name { get; set; }
+        public decimal? transaction_value { get; set; }
+        public decimal? fund_balance { get; set; }
+    }
+
+    // Define a variable to hold the transaction data
+    private TransactionData[] transactionData;
+
+    [Parameter]
+    public string fund_id { get; set; }
+
+    // Define an optional account_id parameter
+    [Parameter]
+    public string? account_id { get; set; }
+
+    public string fund_name { get; set; }
+
+    // Fetch the transaction data from the PHP page using the parameters
+    protected override async Task OnInitializedAsync()
+    {
+        var user_id = await auth.CurrentUserId();
+
+        //prepare url
+        var parameters= new Dictionary<string, string> { { "user_id", user_id }, { "fund_id", fund_id } };
+        account_id = (account_id??"").Trim();
+        if (account_id!="")
+        {
+            parameters.Add("account_id", account_id);
+        }
+        string url = Utility.BackendUrl("report/fundActivity.php", parameters);
+
+        transactionData = await Http.GetFromJsonAsync<TransactionData[]>(url);
+
+        //Populate fund balance with running total
+        decimal runningTotal = 0;
+
+        // Loop through the transaction data in reverse order
+        for (int i = transactionData.Length - 1; i >= 0; i--)
+        {
+            // Add the transaction value to the running total
+            runningTotal += transactionData[i].transaction_value ?? 0;
+
+            // Assign the running total to the fund balance
+            transactionData[i].fund_balance = runningTotal;
+        }
+
+        url = Utility.BackendUrl("fund/get.php", new Dictionary<string, string> { {"id", fund_id } });
+
+        var fund = await Http.GetFromJsonAsync<Shared.Models.Fund>(url);
+        fund_name=fund?.name??"";
+    }
+}

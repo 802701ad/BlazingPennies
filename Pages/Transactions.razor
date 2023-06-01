@@ -14,6 +14,9 @@ else
 {
     <h2>
         Balance for Account: @account.name = @string.Format("{0:C}", account.balance)
+        <a href="Report/TotalsByFund/@account_id" style="font-size: 60%; margin-left: 2em;">
+            Fund Totals
+        </a>
     </h2>
     <p><a href="/accounts/@(account_id)/transaction/new">Create new transaction</a></p>
     <div id="transactionDiv" style="height: 70vh; overflow-y: scroll;" @onscroll="@(() => HandleScroll())">
@@ -89,7 +92,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         transactions = null;
-        Refresh();
+        await Refresh();
     }
 
     private async Task DeleteRecord(BlazingPennies.Shared.Models.Transaction t)

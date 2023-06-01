@@ -1,0 +1,84 @@
+﻿@page "/Report/TotalsByFund/{account_id}"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IAuthService auth
+
+<h1>Report Totals By Fund</h1>
+
+@if (reportData == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Total for Account and Fund</th>
+                <th>Total for Fund All Accounts</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var group in reportData.GroupBy(r => r.ACCOUNT_NAME))
+            {
+                <tr style="border-bottom: 4px solid gray">
+                        <td colspan="2">Account: @group.Key; Total: @string.Format("{0:C}", group.Sum(item => item.TOTAL_FOR_ACCOUNT_AND_FUND))</td>
+                </tr>
+
+        foreach (var item in group)
+                {
+                    <tr>
+                        <td><a href="/Report/FundActivity/@item.FUND_ID">@item.FUND_NAME</a></td>
+                        <td>@string.Format("{0:C}",item.TOTAL_FOR_ACCOUNT_AND_FUND)</td>
+                        <td>@string.Format("{0:C}",item.TOTAL_FOR_FUND_ALL_ACCOUNTS)</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    [Parameter]
+    public string? account_id { get; set; }
+
+    // Define a class to hold the report data
+    public class ReportItem
+    {
+        public string FUND_ID { get; set; }
+        public string FUND_NAME { get; set; }
+        public string ACCOUNT_ID { get; set; }
+        public string ACCOUNT_NAME { get; set; }
+        public decimal? TOTAL_FOR_ACCOUNT_AND_FUND { get; set; }
+        public decimal? TOTAL_FOR_FUND_ALL_ACCOUNTS { get; set; }
+    }
+
+    // Declare a variable to store the report data
+    private ReportItem[] reportData;
+
+    // Fetch the report data from the PHP page when the component is initialized
+    protected override async Task OnInitializedAsync()
+    {
+
+        // Create a dictionary of query parameters for the PHP page
+        var queryParams = new Dictionary<string, string>
+        {
+            { "user_id", await auth.CurrentUserId() }
+        };
+
+        // Add the account_id parameter to the dictionary if it is not null or empty
+        if (!string.IsNullOrEmpty(account_id))
+        {
+            queryParams.Add("account_id", account_id);
+        }
+
+        // Generate the URL for the PHP page using the existing function
+        string url = Utility.BackendUrl("report/totalsByFund.php", queryParams);
+
+        // Get the report data from the URL as JSON
+        string json = await Http.GetStringAsync(url);
+        reportData = Newtonsoft.Json.JsonConvert.DeserializeObject<ReportItem[]>(json);
+    }
+}

@@ -53,10 +53,10 @@ namespace BlazingPennies.Shared.Models
 
         [Required]
         // Use the JsonPropertyName attribute to specify the JSON property name
-        public string user_id { get; set; }
+        public string user_id { get; set; } = "";
 
         [Required]
-        public string id { get; set; }
+        public string id { get; set; } = "";
 
         [Required]
         //[JsonConverter(typeof(CustomDateConverter))]
@@ -64,8 +64,8 @@ namespace BlazingPennies.Shared.Models
 
         public string seq { get; set; }
 
-        [Required]        
-        public string account_id { get; set; }
+        [Required]
+        public string account_id { get; set; } = "";
 
         [Required]        
         public string name { get; set; }
@@ -173,6 +173,12 @@ public class TransactionDetail
         [Required(ErrorMessage = "The fund ID is required.")]
         public string fund_id { get; set; }
 
+        public bool _fund_is_active=true;
+        public string fund_is_active
+        {
+            get { return _fund_is_active ? "1" : "0"; }
+            set { _fund_is_active = (value is "-1" or "1" || value.ToLower() is "y" or "t" or "true" or "yes"); }
+        }
         public string fund_title { get; set; }
 
         [StringLength(500, ErrorMessage = "The description is too long.")]

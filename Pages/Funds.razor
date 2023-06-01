@@ -2,6 +2,8 @@
 @attribute [Authorize]
 @inject HttpClient Http
 @inject IAuthService auth
+@inject NavigationManager NavigationManager
+
 
 <h1>Fund List</h1>
 
@@ -47,7 +49,8 @@ else
         StateHasChanged();
 
         string user_id = await auth.CurrentUserId();
-        funds = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Fund[]>($"https://pennypincher.x10.bz/pennydev/fund/list.php?user_id={user_id}");
+        string url = Utility.BackendUrl("fund/list.php", new { user_id = user_id });
+        funds = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Fund[]>(url);
         funds ??= new BlazingPennies.Shared.Models.Fund[0];
 
         // Update UI after data is fetched
@@ -62,22 +65,6 @@ else
 
     private async Task DeleteFund(string id)
     {
-        try
-        {
-            var response = await Http.DeleteAsync($"https://pennypincher.x10.bz/pennydev/fund/delete.php?id={id}");
-            if (response.IsSuccessStatusCode)
-            {
-                // Refresh the fund list after successful deletion
-                await Refresh();
-            }
-            else
-            {
-                Console.WriteLine($"Error deleting fund with id {id}: {response.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
+        NavigationManager.NavigateTo($"/fund/deleteconfirm/{System.Web.HttpUtility.UrlEncode(id)}", true);
     }
 }

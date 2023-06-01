@@ -1,0 +1,39 @@
+﻿@page "/fund/deleteconfirm/{fund_id}"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h1>Confirm Delete Fund</h1>
+<div style="color: #804d00">
+    <div>
+        WARNING: Deleting a fund will also delete all transaction components associated with that fund. This will likely leave your balances in an inconsistent state.  It is better to create a zeroing transaction and deactivating the fund.
+    </div>
+
+    <div>
+        <ol>
+            <li><a href="/Report/FundActivity/@fund_id">Review Fund Activity</a></li>
+            <li><a href="/auth/ImportExport">Backup data</a></li>
+        </ol>
+    </div>
+</div>
+<h2>
+    Are you sure you want to delete this fund?
+</h2>
+<button class="button is-danger" @onclick="@(async () => await DeleteFund())">Delete Fund</button>
+@code {
+    [Parameter]
+    public string fund_id { get; set; }
+
+    private async Task DeleteFund()
+    {
+        var url = Utility.BackendUrl("fund/delete.php", new { id = fund_id });
+        var response = await Http.DeleteAsync(url);
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo("/fund/list", true);
+        }
+        else
+        {
+            Console.WriteLine($"Error deleting fund with id {fund_id}: {response.StatusCode}");
+        }
+    }
+}

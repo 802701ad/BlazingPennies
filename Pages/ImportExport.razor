@@ -3,6 +3,7 @@
 @inject HttpClient Http
 @inject IAuthService auth
 @inject IJSRuntime JSRuntime
+@inject IConfiguration cfg
 
 <h1>Import/Export My Data</h1>
 
@@ -54,7 +55,7 @@ else
         StateHasChanged();
 
         user_id = await auth.CurrentUserId();
-        userData = await Http.GetStringAsync(Utility.BackendUrl("account/export.php", new Dictionary<string, string>() { ["user_id"] = user_id ?? "" }));
+        userData = await Http.GetStringAsync(Utility.BackendUrl(cfg, "account/export.php", new Dictionary<string, string>() { ["user_id"] = user_id ?? "" }));
         userData=Utility.FormatJson(userData);
 
         isLoading = false;
@@ -101,7 +102,7 @@ else
             new KeyValuePair<string, string>("data", userData),
         });
 
-        var response = await Http.PostAsync(Utility.BackendUrl("account/import.php", new Dictionary<string, string>() { ["user_id"] = user_id ?? "" }), formContent);
+        var response = await Http.PostAsync(Utility.BackendUrl(cfg, "account/import.php", new Dictionary<string, string>() { ["user_id"] = user_id ?? "" }), formContent);
         var result = await response.Content.ReadAsStringAsync();
     }
 

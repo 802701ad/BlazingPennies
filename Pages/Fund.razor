@@ -6,6 +6,7 @@
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 @inject IAuthService auth
+@inject IConfiguration cfg
 
 <PageTitle>@(fund_id?.Length > 0 ? "Edit" : "New") Fund</PageTitle>
 
@@ -49,7 +50,7 @@
         }
         else
         {
-            var url = "https://pennypincher.x10.bz/pennydev/fund/get.php?id=" + System.Web.HttpUtility.UrlEncode(fund_id);
+            string url = Utility.BackendUrl(cfg, "fund/get.php", new {id=fund_id});
             var fund_tmp = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Fund>(url);
 
             if (fund_tmp == null)
@@ -95,7 +96,7 @@
         new KeyValuePair<string, string>("is_active", fund.is_active.ToString())
     });
 
-        var url = "https://pennypincher.x10.bz/pennydev/fund/put.php";
+        string url=Utility.BackendUrl(cfg, "fund/put.php");
         var response = await Http.PostAsync(url, formContent);
         var result = await response.Content.ReadAsStringAsync();
 

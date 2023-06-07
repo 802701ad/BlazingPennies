@@ -2,6 +2,7 @@
 @using System.Net.Http.Json
 @inject HttpClient Http
 @inject IAuthService auth
+@inject IConfiguration cfg
 
 <h1>Fund Activity Report - @fund_name</h1>
 
@@ -69,7 +70,7 @@ else
         {
             parameters.Add("account_id", account_id);
         }
-        string url = Utility.BackendUrl("report/fundActivity.php", parameters);
+        string url = Utility.BackendUrl(cfg, "report/fundActivity.php", parameters);
 
         transactionData = await Http.GetFromJsonAsync<TransactionData[]>(url);
 
@@ -86,7 +87,7 @@ else
             transactionData[i].fund_balance = runningTotal;
         }
 
-        url = Utility.BackendUrl("fund/get.php", new Dictionary<string, string> { {"id", fund_id } });
+        url = Utility.BackendUrl(cfg, "fund/get.php", new Dictionary<string, string> { {"id", fund_id } });
 
         var fund = await Http.GetFromJsonAsync<Shared.Models.Fund>(url);
         fund_name=fund?.name??"";

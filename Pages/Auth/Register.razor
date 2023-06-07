@@ -3,6 +3,7 @@
 @using System.Text.Json;
 @inject HttpClient Http
 @inject NavigationManager navigationManager
+@inject IConfiguration cfg
 
 <h1>Register</h1>
 
@@ -86,7 +87,8 @@
             { "user_id",  RegisterRequest.user_id}
         };
 
-        var result = await Http.PostAsync("https://pennypincher.x10.bz/pennydev/user/register.php", new FormUrlEncodedContent(values));
+        var url = Utility.BackendUrl(cfg, "user/register.php");
+        var result = await Http.PostAsync(url, new FormUrlEncodedContent(values));
 
         if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {
@@ -115,7 +117,7 @@
         {
             { "email", email }
         };
-        var result = await Http.PostAsync("https://pennypincher.x10.bz/pennydev/user/check_email.php", new FormUrlEncodedContent(values));
+        var result = await Http.PostAsync(Utility.BackendUrl(cfg, "user/check_email.php"), new FormUrlEncodedContent(values));
         if (result.IsSuccessStatusCode)
         {
             var response = await result.Content.ReadAsStringAsync();
@@ -131,7 +133,8 @@
         {
             { "user_name", userName }
         };
-        var result = await Http.PostAsync("https://pennypincher.x10.bz/pennydev/user/check_user.php", new FormUrlEncodedContent(values));
+        string url = Utility.BackendUrl(cfg, "user/check_user.php");
+        var result = await Http.PostAsync(url, new FormUrlEncodedContent(values));
         if (result.IsSuccessStatusCode)
         {
             var response = await result.Content.ReadAsStringAsync();

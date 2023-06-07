@@ -1,6 +1,7 @@
 ﻿using BlazingPennies.Shared.BlazorApp.Services;
 using BlazingPennies.Shared.Models;
 using Microsoft.AspNetCore.Components.Authorization;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -66,10 +67,12 @@ namespace BlazingPennies.Shared
     {
         private readonly HttpClient _httpClient;
         private ILocalStorageService _localStorageService;
-        public AuthService(HttpClient httpClient, ILocalStorageService localStorageService)
+        private IConfiguration _cfg;
+        public AuthService(HttpClient httpClient, ILocalStorageService localStorageService, IConfiguration cfg)
         {
             _localStorageService = localStorageService;
             _httpClient = httpClient;
+            _cfg = cfg;
         }
 
         public async Task<string> CurrentUserId()
@@ -88,7 +91,7 @@ namespace BlazingPennies.Shared
             };
             if (user_id != "")
             {
-                var userinfo = await _httpClient.GetFromJsonAsync<User>($"https://pennypincher.x10.bz/pennydev/user/get.php?user_id=" + HttpUtility.UrlEncode(user_id));
+                var userinfo = await _httpClient.GetFromJsonAsync<User>(Utility.BackendUrl(_cfg, "user/get.php", new { user_id = user_id });
                 c.UserName = userinfo.EMAIL;
                 c.FIRST_NAME= userinfo.FIRST_NAME;
                 c.LAST_NAME= userinfo.LAST_NAME;
@@ -105,7 +108,8 @@ namespace BlazingPennies.Shared
                 new KeyValuePair<string, string>("pass", loginRequest.pass),
             });
 
-            var result = await _httpClient.PostAsync($"https://pennypincher.x10.bz/pennydev/user/verify.php", formContent);
+            string url=Utility.BackendUrl(_cfg, "user/verify.php");
+            var result = await _httpClient.PostAsync(url, formContent);
             if (result.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 var user=JsonSerializer.Deserialize<User>(await result.Content.ReadAsStringAsync());
@@ -130,7 +134,8 @@ namespace BlazingPennies.Shared
                 { "user_id", Guid.NewGuid().ToString() } //pass the user_id as a new guid
             };
 
-            var result = await _httpClient.PostAsync("https://pennypincher.x10.bz/pennydev/user/register.php", new FormUrlEncodedContent(values));
+            string url=Utility.BackendUrl(_cfg, "user/register.php");
+            var result = await _httpClient.PostAsync(url, new FormUrlEncodedContent(values));
             if (result.StatusCode == System.Net.HttpStatusCode.BadRequest) throw new Exception(await result.Content.ReadAsStringAsync());
             result.EnsureSuccessStatusCode();
         }

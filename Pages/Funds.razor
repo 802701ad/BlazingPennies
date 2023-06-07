@@ -3,7 +3,7 @@
 @inject HttpClient Http
 @inject IAuthService auth
 @inject NavigationManager NavigationManager
-
+@inject IConfiguration cfg
 
 <h1>Fund List</h1>
 
@@ -49,7 +49,7 @@ else
         StateHasChanged();
 
         string user_id = await auth.CurrentUserId();
-        string url = Utility.BackendUrl("fund/list.php", new { user_id = user_id });
+        string url = Utility.BackendUrl(cfg, "fund/list.php", new { user_id = user_id });
         funds = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Fund[]>(url);
         funds ??= new BlazingPennies.Shared.Models.Fund[0];
 

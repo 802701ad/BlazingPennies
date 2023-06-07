@@ -3,6 +3,7 @@
 @inject HttpClient Http
 @inject IAuthService auth
 @inject IJSRuntime JSRuntime
+@inject IConfiguration cfg
 
 <h1>Transactions List</h1>
 
@@ -70,7 +71,7 @@ else
 
         int lastRecordNumber = transactions?.Length??0-1;
         string user_id = await auth.CurrentUserId();
-        string url = Utility.BackendUrl("transaction/list.php", new Dictionary<string, string>() { { "user_id", user_id }, { "page", currentPage.ToString() }, { "pageSize", pageSize.ToString() } });
+        string url = Utility.BackendUrl(cfg, "transaction/list.php", new Dictionary<string, string>() { { "user_id", user_id }, { "page", currentPage.ToString() }, { "pageSize", pageSize.ToString() } });
         string json = await Http.GetStringAsync(url);
         var transactions_to_add = Newtonsoft.Json.JsonConvert.DeserializeObject<BlazingPennies.Shared.Models.Transaction[]>(json);
         if (transactions == null)
@@ -102,7 +103,7 @@ else
         if (!confirmed) return;
         isLoading = true;
         StateHasChanged();
-        string url=Utility.BackendUrl("transaction/delete.php", new Dictionary<string, string>() { { "id", id } });
+        string url=Utility.BackendUrl(cfg, "transaction/delete.php", new Dictionary<string, string>() { { "id", id } });
         string result = await Http.GetStringAsync(url);
         transactions = null;
         isLoading = false;
@@ -111,7 +112,7 @@ else
 
     private async Task GetAccountBalance()
     {
-        string url = Utility.BackendUrl("account/get.php?withBalance=true", new Dictionary<string, string>() { { "id", account_id } });
+        string url = Utility.BackendUrl(cfg, "account/get.php?withBalance=true", new Dictionary<string, string>() { { "id", account_id } });
         string json = await Http.GetStringAsync(url);
         account = Newtonsoft.Json.JsonConvert.DeserializeObject<BlazingPennies.Shared.Models.Account>(json);
     }

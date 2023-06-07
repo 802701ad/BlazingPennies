@@ -1,6 +1,7 @@
 ﻿@page "/fund/deleteconfirm/{fund_id}"
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IConfiguration cfg
 
 <h1>Confirm Delete Fund</h1>
 <div style="color: #804d00">
@@ -25,7 +26,7 @@
 
     private async Task DeleteFund()
     {
-        var url = Utility.BackendUrl("fund/delete.php", new { id = fund_id });
+        var url = Utility.BackendUrl(cfg, "fund/delete.php", new { id = fund_id });
         var response = await Http.DeleteAsync(url);
         if (response.IsSuccessStatusCode)
         {

@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject HttpClient Http
 @inject IAuthService auth
+@inject IConfiguration cfg
 
 <h1>Select an Account</h1>
 
@@ -42,7 +43,8 @@ else
         StateHasChanged();
 
         string user_id = await auth.CurrentUserId();
-        accounts = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Account[]>($"https://pennypincher.x10.bz/pennydev/account/list.php?user_id={user_id}");
+        string url = Utility.BackendUrl(cfg, "account/list.php", new {user_id=user_id});
+        accounts = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Account[]>(url);
 
         // Update UI after data is fetched
         await InvokeAsync(StateHasChanged);

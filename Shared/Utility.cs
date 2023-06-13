@@ -20,6 +20,7 @@ namespace BlazingPennies.Shared
         public static decimal SumNumbers(string? input)
         {
             if (input == null) return 0;
+            input = input.Replace("$", "");
             // Use a regular expression to match all the decimal numbers in the input, except those preceded by a backslash
             //MatchCollection matches = Regex.Matches(input, @"(?<!\\)-?\d+(?:\.\d+)?");
             //letters must be separated from numbers by punctuation

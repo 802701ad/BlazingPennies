@@ -91,7 +91,8 @@ namespace BlazingPennies.Shared
             };
             if (user_id != "")
             {
-                var userinfo = await _httpClient.GetFromJsonAsync<User>(Utility.BackendUrl(_cfg, "user/get.php", new { user_id = user_id });
+                string url=Utility.BackendUrl(_cfg, "user/get.php", new { user_id = user_id });
+                var userinfo = await _httpClient.GetFromJsonAsync<User>(url);
                 c.UserName = userinfo.EMAIL;
                 c.FIRST_NAME= userinfo.FIRST_NAME;
                 c.LAST_NAME= userinfo.LAST_NAME;

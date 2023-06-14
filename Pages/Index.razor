@@ -3,7 +3,7 @@
 <PageTitle>Index</PageTitle>
 
 <h1>Hello,  @currentUser?.FIRST_NAME @currentUser?.LAST_NAME!</h1>
-<div>Your id is @currentUser?.Id</div>
+<div style="display: none">Your id is @currentUser?.Id</div>
 @code {
 
     [Inject]
@@ -16,12 +16,3 @@
         currentUser = await auth.CurrentUserInfo();
     }
 }
-<br />
-<br />
-https://stackoverflow.com/questions/66342112/blazor-validation-of-list-of-child-components
-<br />
-<br />
-https://www.youtube.com/watch?v=zfqQ_fhmPOQ
-<br />
-<br />
-https://learn.microsoft.com/en-us/aspnet/core/blazor/forms-and-input-components?view=aspnetcore-7.0

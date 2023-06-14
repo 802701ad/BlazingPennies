@@ -1,7 +1,9 @@
 ﻿@page "/login"
 @layout MainLayout
-@inject NavigationManager navigationManager
+@inject NavigationManager nav
+@inject IConfiguration cfg
 @inject CustomStateProvider authStateProvider
+
 <h1 class="h2 font-weight-normal login-title">
     Login
 </h1>
@@ -32,7 +34,7 @@
         try
         {
             await authStateProvider.Login(loginRequest);
-            navigationManager.NavigateTo("");
+            Utility.NavigateToPath(nav, cfg, "", true);
         }
         catch (Exception ex)
         {

@@ -71,7 +71,7 @@ else
 
         int lastRecordNumber = transactions?.Length??0-1;
         string user_id = await auth.CurrentUserId();
-        string url = Utility.BackendUrl(cfg, "transaction/list.php", new Dictionary<string, string>() { { "user_id", user_id }, { "page", currentPage.ToString() }, { "pageSize", pageSize.ToString() } });
+        string url = Utility.BackendUrl(cfg, "transaction/list.php", new {user_id= user_id, account_id=account_id,  page=currentPage.ToString(), pageSize=pageSize.ToString() } );
         string json = await Http.GetStringAsync(url);
         var transactions_to_add = Newtonsoft.Json.JsonConvert.DeserializeObject<BlazingPennies.Shared.Models.Transaction[]>(json);
         if (transactions == null)

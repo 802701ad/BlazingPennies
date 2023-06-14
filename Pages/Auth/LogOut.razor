@@ -1,13 +1,14 @@
 ﻿@page "/logout"
 @inject CustomStateProvider authStateProvider
-@inject NavigationManager navigationManager
+@inject NavigationManager nav
+@inject IConfiguration cfg
 
 <h3>Logging Out...</h3>
 @code {
     protected override async Task OnInitializedAsync()
     {
         await authStateProvider.Logout();
-        navigationManager.NavigateTo("");
+        Utility.NavigateToPath(nav, cfg, "/", true);
     }
 
 }

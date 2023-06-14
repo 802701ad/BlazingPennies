@@ -102,7 +102,7 @@
             var response = await result.Content.ReadAsStringAsync();
             var message = JsonSerializer.Deserialize<Dictionary<string, string>>(response)["message"];
             Message = message;
-            navigationManager.NavigateTo("");
+            Utility.NavigateToPath(navigationManager, cfg, "/", true);
             return;
         }
 

@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
+using Microsoft.AspNetCore.Components;
 
 namespace BlazingPennies.Shared
 {
@@ -87,6 +88,17 @@ namespace BlazingPennies.Shared
             }
             // Call the first version of the function with the dictionary
             return BackendUrl(_configuration, relativeUrl, dictionary);
+        }
+
+
+        //takes a navigationmanager, a configuration manager, and a path and performs a navigate to based on the frontend_path in appsettings.json
+        public static void NavigateToPath(NavigationManager navigationManager, IConfiguration configuration, string path, bool forceload=false)
+        {
+            //perform the navigation based on combining the paths with a uri builder
+            //UriBuilder builder = new UriBuilder(new Uri(new Uri(configuration["frontend_root"]), path));
+            //navigationManager.NavigateTo(builder.ToString(), forceload);
+            string new_path = (configuration["frontend_root"] + path).Replace("//","/");
+            navigationManager.NavigateTo(new_path, forceload);
         }
 
         public static string FormatJson(string json)

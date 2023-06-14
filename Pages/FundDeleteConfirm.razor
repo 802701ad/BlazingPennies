@@ -1,6 +1,6 @@
 ﻿@page "/fund/deleteconfirm/{fund_id}"
 @inject HttpClient Http
-@inject NavigationManager NavigationManager
+@inject NavigationManager nav
 @inject IConfiguration cfg
 
 <h1>Confirm Delete Fund</h1>
@@ -30,7 +30,7 @@
         var response = await Http.DeleteAsync(url);
         if (response.IsSuccessStatusCode)
         {
-            NavigationManager.NavigateTo("/fund/list", true);
+            Utility.NavigateToPath(nav, cfg, "/fund/list", true);
         }
         else
         {

@@ -2,7 +2,7 @@
 @page "/accounts/{account_id}/transaction/new"
 @attribute [Authorize]
 @inject HttpClient Http
-@inject NavigationManager NavigationManager
+@inject NavigationManager nav
 @inject IAuthService auth
 @inject IConfiguration cfg
 
@@ -120,7 +120,7 @@
             if (transaction_tmp == null)
             {
                 //transaction not found
-                NavigationManager.NavigateTo($"/account/{System.Web.HttpUtility.UrlEncode(account_id)}", true);
+                Utility.NavigateToPath(nav, cfg, $"/account/{System.Web.HttpUtility.UrlEncode(account_id)}", true);
                 return;
             }
             transaction = transaction_tmp;
@@ -167,7 +167,7 @@
         }
         else 
         {
-            NavigationManager.NavigateTo($"/account/{System.Web.HttpUtility.UrlEncode(transaction.account_id)}/transactions", true);
+            Utility.NavigateToPath(nav, cfg, $"/account/{System.Web.HttpUtility.UrlEncode(transaction.account_id)}/transactions", true);
         }
     }
 

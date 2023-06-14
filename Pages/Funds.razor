@@ -2,7 +2,7 @@
 @attribute [Authorize]
 @inject HttpClient Http
 @inject IAuthService auth
-@inject NavigationManager NavigationManager
+@inject NavigationManager nav
 @inject IConfiguration cfg
 
 <h1>Fund List</h1>
@@ -65,6 +65,6 @@ else
 
     private async Task DeleteFund(string id)
     {
-        NavigationManager.NavigateTo($"/fund/deleteconfirm/{System.Web.HttpUtility.UrlEncode(id)}", true);
+        Utility.NavigateToPath(nav, cfg, $"/fund/deleteconfirm/{System.Web.HttpUtility.UrlEncode(id)}", true);
     }
 }

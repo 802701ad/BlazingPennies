@@ -1,7 +1,9 @@
-﻿@inject NavigationManager Navigation
+﻿@inject NavigationManager nav
+@inject IConfiguration cfg
+
 @code {
     protected override void OnInitialized()
     {
-        Navigation.NavigateTo("/login");
+        Utility.NavigateToPath(nav, cfg, "/login", true);
     }
 }

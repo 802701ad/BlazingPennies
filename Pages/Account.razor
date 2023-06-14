@@ -4,9 +4,9 @@
 @page "/account/{account_id}"
 @attribute [Authorize]
 @inject HttpClient Http
-@inject NavigationManager NavigationManager
-@inject IAuthService auth
+@inject NavigationManager nav
 @inject IConfiguration cfg
+@inject IAuthService auth
 
 <PageTitle>@(account_id?.Length > 0 ? "Edit" : "New") Account</PageTitle>
 
@@ -55,7 +55,7 @@
             if (account_tmp == null)
             {
                 //account not found
-                NavigationManager.NavigateTo("/", true);
+                Utility.NavigateToPath(nav, cfg, "/", true);
                 return;
             }
             account = account_tmp;
@@ -100,7 +100,7 @@
         {
             Console.WriteLine("STATUS:" + response.StatusCode);
             Console.WriteLine("RESULT:" + result);
-            NavigationManager.NavigateTo("/account/list", true);
+            Utility.NavigateToPath(nav, cfg, "/account/list", true);
         }
         else
         {

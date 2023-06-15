@@ -5,17 +5,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Blazing Pennies</title>
+    <!--<base href="/blazingpennies/" />-->
     <base href="/" />
     <link href="css/pico.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
     <link href="css/open-iconic/font/css/open-iconic-bootstrap.min.css" rel="stylesheet" />
-    
+
     <link href="BlazingPennies.styles.css" rel="stylesheet" />
     <script>
-        
-        window.IsTimeToScrollTransactions= function () {
+
+        window.IsTimeToScrollTransactions = function () {
             let d = document.getElementById("transactionDiv");
-            if(!d) return false;
+            if (!d) return false;
             let scrollTop = d.scrollTop;
             let scrollHeight = d.scrollHeight;
             let clientHeight = d.clientHeight;

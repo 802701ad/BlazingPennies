@@ -47,7 +47,12 @@ namespace BlazingPennies.Shared
         {
             if (additional_parameters == null) additional_parameters = new Dictionary<string, string>();
             // Get the root variable from the configuration
-            string root = _configuration["backend_root"];
+            //string root = _configuration["backend_root"];
+            #if RELEASE
+            string root = "https://visidium-xyz.ibrave.host/pennypincher/";
+            #else
+            string root = "https://pennypincher.x10.bz/pennydev/";
+            #endif
             // Create a UriBuilder object from the root and relativeUrl
             UriBuilder builder = new UriBuilder(new Uri(new Uri(root), relativeUrl));
             // Get the query string from the builder as a NameValueCollection
@@ -94,10 +99,17 @@ namespace BlazingPennies.Shared
         //takes a navigationmanager, a configuration manager, and a path and performs a navigate to based on the frontend_path in appsettings.json
         public static void NavigateToPath(NavigationManager navigationManager, IConfiguration configuration, string path, bool forceload=false)
         {
+            //string frontend_path = configuration["frontend_path"];
+            #if RELEASE
+            string frontend_path = "/blazingpennies/";
+            #else
+            string frontend_path = "/";
+            #endif
             //perform the navigation based on combining the paths with a uri builder
             //UriBuilder builder = new UriBuilder(new Uri(new Uri(configuration["frontend_root"]), path));
             //navigationManager.NavigateTo(builder.ToString(), forceload);
-            string new_path = (configuration["frontend_root"] + path).Replace("//","/");
+            string new_path = (frontend_path + path).Replace("//","/");
+            Console.WriteLine("!" + frontend_path + "!");
             navigationManager.NavigateTo(new_path, forceload);
         }
 

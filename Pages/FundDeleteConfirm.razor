@@ -30,7 +30,7 @@
         var response = await Http.DeleteAsync(url);
         if (response.IsSuccessStatusCode)
         {
-            Utility.NavigateToPath(nav, cfg, "/fund/list", true);
+            Utility.NavigateToPath(nav, cfg, "/fund/list");
         }
         else
         {

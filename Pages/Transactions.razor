@@ -19,7 +19,7 @@ else
             Fund Totals
         </a>
     </h2>
-    <p><a href="/accounts/@(account_id)/transaction/new">Create new transaction</a></p>
+    <p><a href="accounts/@(account_id)/transaction/new">Create new transaction</a></p>
     <div id="transactionDiv" style="height: 70vh; overflow-y: scroll;" @onscroll="@(() => HandleScroll())">
         <table>
             <thead>
@@ -36,7 +36,7 @@ else
                 @foreach (var transaction in transactions)
                 {
                     <tr>
-                        <td id="record_@(recordIndex++)"><a href="/transactions/edit/@transaction.id">@transaction.name &nbsp;<span class="oi oi-pencil"></span></a></td>
+                        <td id="record_@(recordIndex++)"><a href="transactions/edit/@transaction.id">@transaction.name &nbsp;<span class="oi oi-pencil"></span></a></td>
                         <td>@transaction.date.ToShortDateString()</td>
                         <td>@transaction.amount</td>
                         <td><button @onclick="@(() => DeleteRecord(transaction))" class="btn-delete"><span class="oi oi-trash"></span></button></td>

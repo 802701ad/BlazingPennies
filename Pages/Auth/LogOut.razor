@@ -8,7 +8,7 @@
     protected override async Task OnInitializedAsync()
     {
         await authStateProvider.Logout();
-        Utility.NavigateToPath(nav, cfg, "/", true);
+        Utility.NavigateToPath(nav, cfg, "/");
     }
 
 }

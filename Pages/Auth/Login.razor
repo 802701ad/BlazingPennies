@@ -34,7 +34,7 @@
         try
         {
             await authStateProvider.Login(loginRequest);
-            Utility.NavigateToPath(nav, cfg, "/", true);
+            Utility.NavigateToPath(nav, cfg, "/");
         }
         catch (Exception ex)
         {

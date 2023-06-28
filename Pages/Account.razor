@@ -55,7 +55,7 @@
             if (account_tmp == null)
             {
                 //account not found
-                Utility.NavigateToPath(nav, cfg, "/", true);
+                Utility.NavigateToPath(nav, cfg, "/");
                 return;
             }
             account = account_tmp;
@@ -100,7 +100,7 @@
         {
             Console.WriteLine("STATUS:" + response.StatusCode);
             Console.WriteLine("RESULT:" + result);
-            Utility.NavigateToPath(nav, cfg, "/account/list", true);
+            Utility.NavigateToPath(nav, cfg, "/account/list");
         }
         else
         {

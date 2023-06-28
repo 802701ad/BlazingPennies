@@ -56,7 +56,7 @@
             if (fund_tmp == null)
             {
                 //fund not found
-                Utility.NavigateToPath(nav, cfg, "/", true);
+                Utility.NavigateToPath(nav, cfg, "/");
                 return;
             }
             fund = fund_tmp;
@@ -104,7 +104,7 @@
         {
             Console.WriteLine("STATUS:" + response.StatusCode);
             Console.WriteLine("RESULT:" + result);
-            Utility.NavigateToPath(nav, cfg, "/fund/list", true);
+            Utility.NavigateToPath(nav, cfg, "/fund/list");
         }
         else
         {

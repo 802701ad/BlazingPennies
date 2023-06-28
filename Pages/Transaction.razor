@@ -120,7 +120,7 @@
             if (transaction_tmp == null)
             {
                 //transaction not found
-                Utility.NavigateToPath(nav, cfg, $"/account/{System.Web.HttpUtility.UrlEncode(account_id)}", true);
+                Utility.NavigateToPath(nav, cfg, $"/account/{System.Web.HttpUtility.UrlEncode(account_id)}");
                 return;
             }
             transaction = transaction_tmp;
@@ -167,7 +167,7 @@
         }
         else 
         {
-            Utility.NavigateToPath(nav, cfg, $"/account/{System.Web.HttpUtility.UrlEncode(transaction.account_id)}/transactions", true);
+            Utility.NavigateToPath(nav, cfg, $"/account/{System.Web.HttpUtility.UrlEncode(transaction.account_id)}/transactions");
         }
     }
 

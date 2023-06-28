@@ -65,6 +65,6 @@ else
 
     private async Task DeleteFund(string id)
     {
-        Utility.NavigateToPath(nav, cfg, $"/fund/deleteconfirm/{System.Web.HttpUtility.UrlEncode(id)}", true);
+        Utility.NavigateToPath(nav, cfg, $"/fund/deleteconfirm/{System.Web.HttpUtility.UrlEncode(id)}");
     }
 }

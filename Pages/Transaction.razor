@@ -113,8 +113,9 @@
         else
         {
             string url= Utility.BackendUrl(cfg, "transaction/get.php", new Dictionary<string, string> { { "id", transaction_id }, { "user_id", transaction.user_id } });
-            //string json = await Http.GetStringAsync(url);
-            var transaction_tmp = await Http.GetFromJsonAsync<BlazingPennies.Shared.Models.Transaction>(url);
+            
+            var json = await Http.GetStringAsync(url);
+            var transaction_tmp = Newtonsoft.Json.JsonConvert.DeserializeObject<BlazingPennies.Shared.Models.Transaction>(json);
 
 
             if (transaction_tmp == null)
